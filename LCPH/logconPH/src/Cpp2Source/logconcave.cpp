@@ -37,14 +37,14 @@ extern "C" SEXP uniVarLCCens(SEXP R_L, SEXP R_R, SEXP R_x,
 	int max_outer_its = 1000;
 	
 	vector<double> old_b(k);
-	double tol_m = pow(10, -5);
-	double outer_tol = pow(10.0, -5);
-	double inner_tol = pow(10.0, -5);
+	double tol_m = pow(10.0, -5.0);
+	double outer_tol = pow(10.0, -5.0);
+	double inner_tol = pow(10.0, -5.0);
 	double inner_llk;
 	double inner_error;
 	double outer_error = outer_tol + 1;
 	double tol = pow(10.0, -10.0);
-	double oldLike = R_NegInf;
+//	double oldLike = R_NegInf;
 	double Err = tol + 1;
 	double newLike = 0;
 	bool startMoveX = false;

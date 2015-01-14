@@ -544,6 +544,9 @@ void actSetBase::ICMstep(){
 	vector<double> currentDervs(2);
 
 		if(ak <= 2){
+		
+			cout  << "just using update1Vars\n";
+		
 			vector<int> actIndsCopy = actIndex;
 			for(int i = 0; i < ak; i++)
 				update1Var(actIndsCopy[i]);
@@ -586,11 +589,16 @@ void actSetBase::ICMstep(){
 			propOK = false;
 			if(propStep[i] < 10000.0 && propStep[i] > -10000.0)
 				propOK = true;
+				
+			if(propOK == false)
+				return;
 		}
-		if(propOK == false){
-		//	Rprintf("note: propStep is really crazy. skipping\n");
-			return;
-		}
+		
+		cout << "propStep = ";
+		for(int i = 0; i < ak; i++)
+			cout << propStep[i];
+		cout << "\n";
+				
 		for(int i = 0; i < ak; i++)
 			move_act_b(actIndex[i], propStep[i]);
 		for(int j = 0; j < ak; j++){

@@ -20,8 +20,9 @@
 #include "Cpp2Source/logconcave.cpp"
 
 extern "C" SEXP LC_CoxPH(SEXP R_L, SEXP R_R, SEXP R_x,
-	SEXP R_b, SEXP R_actInds, SEXP move_X,
-	SEXP AugL, SEXP AugR, SEXP covariates){
+	SEXP R_b, SEXP R_actInds, SEXP move_X, SEXP AugL, SEXP AugR, SEXP covariates, 
+	SEXP R_LMAXIND, SEXP R_RMININD, SEXP R_MAXUNCENSBETAIND, 
+	SEXP R_MAXUNCENSOBSIND, SEXP R_HASUNCENSORED){
 	bool c_move_x = LOGICAL(move_X)[0] == TRUE;
 	int n = LENGTH(R_L);
 	int k = LENGTH(R_x);
@@ -30,7 +31,7 @@ extern "C" SEXP LC_CoxPH(SEXP R_L, SEXP R_R, SEXP R_x,
 	for(int i = 0; i < k; i++){
 		x[i] = REAL(R_x)[i];
 		b[i] = REAL(R_b)[i];
-	}
+	}	
 	vector<int> cL(n);
 	vector<int> cR(n);
 	vector<double> cRepVec(n);
@@ -85,25 +86,39 @@ extern "C" SEXP LC_CoxPH(SEXP R_L, SEXP R_R, SEXP R_x,
 	double augl = REAL(AugL)[0];
 	double augr = REAL(AugR)[0];
 
-	
-	LogConCenPH optObj(0, x, b, cL, cR, actInds, c_move_x, augl, augr, Covars, num_cov);
+	int LMAXIND = INTEGER(R_LMAXIND)[0] - 1;
+	int RMININD = INTEGER(R_RMININD)[0] - 1;
+	double LLAGRMIN = REAL(AugL)[0];
+	double RLAGRMIN = REAL(AugR)[0];
+	int MAXUNCENSBETAIND = INTEGER(R_MAXUNCENSBETAIND)[0] - 1;
+	int MAXUNCENSOBSIND = INTEGER(R_MAXUNCENSOBSIND)[0] - 1;
+	bool HASUNCENSORED = LOGICAL(R_HASUNCENSORED)[0] == TRUE;
+				
+	LogConCenPH optObj(0, x, b, cL, cR, actInds, c_move_x, augl, augr, Covars, num_cov,
+						LMAXIND, RMININD, LLAGRMIN, RLAGRMIN, MAXUNCENSBETAIND, MAXUNCENSOBSIND, HASUNCENSORED);
 
 
 	optObj.updateNu();
 
 	optObj.updateRegress();
 
+	cout << "starting llk = " <<optObj.llk() << "\n";
+
 	optObj.VEMstep();	
 	optObj.ICMstep();
 	
+	cout << "after VEM and ICM, llk = " << optObj.llk() << "\n";
+
+	cout << "k = " << k << " actInds[0] = " << optObj.actIndex[0] << " actInds[getAK()-1] = " << optObj.actIndex[optObj.getAK()-1] << "\n";
+	
 //	double old_llk = R_NegInf;
-		
+	
 //	double new_llk = optObj.llk();
 	
 	int inner_it = 0;
 	int outer_it = 0;
-	int max_inner_its = 20;
-	int max_outer_its = 100;
+	int max_inner_its = 2;
+	int max_outer_its = 2;
 	
 	double outer_tol = pow(10.0, -10);
 	double inner_tol = pow(10.0, -12);
@@ -114,28 +129,46 @@ extern "C" SEXP LC_CoxPH(SEXP R_L, SEXP R_R, SEXP R_x,
 	int loopcount = 0;
 	bool start_move_x = false;
 
+	Rprintf("Reminder to Cliff: move_x turned off until updates\n");
+
 	while( (outer_it < max_outer_its)  && (loopcount < 2)){
 		outer_it++;
 		outer_llk = optObj.llk();
+		
+		cout << "beginning loop llk = " << outer_llk << "\n";
+		
 		optObj.VEMstep();
+		
+		
+		cout << "after VEMstep, llk = " << optObj.llk() << "\n";
+		
 		inner_error = inner_tol + 1;
 		reg_error = outer_tol + 1;
 		inner_it = 0;
 		while(inner_it < max_inner_its && inner_error > inner_tol){
 			inner_it++;
-			if(start_move_x && c_move_x)
-				optObj.updateXs();
+	//		if(start_move_x && c_move_x)
+	//			optObj.updateXs();
 			if(reg_error > outer_tol){
 				reg_error = optObj.updateRegress();
+				cout << "after updateRegress step, llk = " << optObj.llk() << "\n";
 				}
 			inner_llk = optObj.llk();
 			optObj.ICMstep();
+			cout << "after ICM step, llk = " << optObj.llk() << "\n";
 			inner_error = optObj.llk() - inner_llk;
 			if(inner_error != inner_error)
 				break;
-			optObj.checkEnds();			
 		}
+		
+		
+		cout << "k = " << k << " actInds[0] = " << optObj.actIndex[0] << " actInds[getAK()-1] = " << optObj.actIndex[optObj.getAK()-1] << "\n";
+		
+		cout << "before recenterBeta, llk = " << optObj.llk() <<"\n";
+		
 		optObj.recenterBeta();
+
+		cout << "after recenterBeta, llk = " << optObj.llk() << "\n";
 		outer_error = optObj.llk() - outer_llk;	
 		if(outer_error != outer_error){
 			Rprintf("Warning: undefined error. Algorithm terminated at invalid estimate. Please contact Clifford Anderson-Bergman with this dataset!\n");
@@ -182,18 +215,11 @@ extern "C" SEXP LC_CoxPH(SEXP R_L, SEXP R_R, SEXP R_x,
 	UNPROTECT(6);
 	return(output);
 }
-LogConCenPH::LogConCenPH(int MoveX, 
-				   	vector<double> X, 
-				   	vector<double> B, 
-				   	vector<int> L_ind, 
-				   	vector<int> R_ind,
-				   	vector<int> actInds,
-				   	bool allow_x_move,
-				   	double augl,
-					double augr,
-					QuadProgPP::Matrix<double> Covars,
-				   	int num_cov
-				   	){
+LogConCenPH::LogConCenPH(int MoveX, vector<double> X, vector<double> B, vector<int> L_ind, 
+				   	vector<int> R_ind, vector<int> actInds, bool allow_x_move, double augl,
+					double augr, QuadProgPP::Matrix<double> Covars, int num_cov, int LMAXIND,
+				   	int RMININD, double LLAGRMIN, double RLAGRMIN, int MAXUNCENSBETAIND,
+				   	int MAXUNCENSOBSIND,bool HASUNCENSORED){
 				   	x = X;
 				   	b = B;
 				   	Lindex = L_ind;
@@ -226,10 +252,20 @@ LogConCenPH::LogConCenPH(int MoveX,
 					test_Hess_b.resize(num_cov, num_cov);
 					b_h.resize(num_cov);
 					b_l.resize(num_cov);
+					
+					lagrangeMultiplier = 100;
+					l_max_ind = LMAXIND;
+					r_min_ind = RMININD;
+					leftLagrangeMin = LLAGRMIN;
+					rightLagrangeMin = RLAGRMIN;
+					uncensoredObs = HASUNCENSORED;
+					maxUncensoredBInd = MAXUNCENSBETAIND;
+					maxUncensoredObsInd = MAXUNCENSOBSIND;
+
+					// vector<bool> isMovable;
 				   }
-				   
-	
-double LogConCenPH::llk(){
+
+bool LogConCenPH::update_all_p(){
 	int k = x.size();
 	double db;
 	s[0] = 0;
@@ -250,7 +286,8 @@ double LogConCenPH::llk(){
 		} else {
 			db = (b[2] - b[1]) / dx[1];
 			if(db <= 0){
-				return(R_NegInf);
+				cout << "error 1 in update_all_up\n";
+				return(false);
 			}
 			s[1] = exp(b[1])/db;
 			}
@@ -285,14 +322,25 @@ double LogConCenPH::llk(){
 		else {
 			db = (b[k-2] - b[k-3]) / dx[k-3];//(x[k-2] - x[k-3]);
 			if(db >= 0){
-				return(R_NegInf);
+				cout << "error 2 in update_all_up. db = " << db << "\n";
+				return(false);
 			}
 			s[k-1] = s[k-2] - exp(b[k-2])/db;
 		}					
-	}
-	scaleValue = (1 - augLeft - augRight) / s[k-1];
+	}	
+	return(true);
+} 
+
+double LogConCenPH::llk(){
+	int k = x.size();
+	bool OK = update_all_p();
+	if(OK == false){
+		cout << "update_all_up leads to OK == false\n";
+		return(R_NegInf);
+		}
+	scaleValue = 1 / s[k-1];
 	double logScale = log(scaleValue);
-	
+	cout << "logScale = " << logScale << "\n";
 	//Should be scaleValue * b[i] for uncensored, I think??
 
 	for(int i = 0; i < k; i++)
@@ -307,6 +355,9 @@ double LogConCenPH::llk(){
 		hi_ind = Rindex[i];
 		lo_ind = Lindex[i];
 		if(hi_ind == lo_ind){
+			cout << "b[lo_ind] = " << b[lo_ind] << "\n";
+			if(b[lo_ind] != b[lo_ind])
+				cout << "yes\n";
 			if(abs(nu[i]-1) >  0.00000001)
 				log_sum += log(nu[i]) + (b[lo_ind] + logScale) + (nu[i]-1) * log(1-s[hi_ind]);	
 			else
@@ -316,18 +367,42 @@ double LogConCenPH::llk(){
 		p_ob  =  pow(1-s[lo_ind], nu[i]) - pow(1-s[hi_ind], nu[i]);
 					
 		if(p_ob == 0) {
+			 cout << "return 1\n";
 			 return(R_NegInf);
 		}
 		log_sum = log_sum + log(p_ob);
 	}
 	if(log_sum == R_PosInf || log_sum == R_NegInf){
+		cout << "return 2\n";
 		return(R_NegInf);
 	}
 	if(log_sum != log_sum){
+		cout << "return 3\n";
 		return(R_NegInf);
 	}
+	log_sum -= calculateLagrangePenalty();
+	if(log_sum == R_NegInf)
+		cout << "lagrange penalty problem!!\n";
 	return (log_sum);
 }
+
+double LogConCenPH::calculateLagrangePenalty(){
+	double leftProb = s[l_max_ind];
+	double rightProb = 1 - s[l_max_ind];
+	double leftError = 0;
+	double rightError = 0;
+	if(leftProb < leftLagrangeMin){
+		leftError = (leftLagrangeMin - leftProb) * (leftLagrangeMin - leftProb) * lagrangeMultiplier;
+	}
+	if(rightProb < rightLagrangeMin){
+		rightError = (rightLagrangeMin - rightProb) * (rightLagrangeMin - rightProb) * lagrangeMultiplier;
+		if(uncensoredObs == true)
+			rightError = rightError * exp(2 * b[maxUncensoredBInd] * nu[maxUncensoredObsInd]);
+	}
+	return(leftError + rightError);
+}
+
+
 
 double LogConCenPH::nullk(){
 //	int k = x.size();
@@ -589,6 +664,7 @@ double LogConCenPH::fastBasellk(){
 	if(log_sum != log_sum){
 		return(R_NegInf);
 	}
+	log_sum -= calculateLagrangePenalty();
 	return (log_sum);
 }
 
@@ -655,3 +731,15 @@ double LogConCenPH::partialDerCovOrBase(int i, int j){
 	return( (lk_hh + lk_ll - lk_hl - lk_lh) / (4*h*h) );
 }
 
+void LogConCenPH::checkAllActive(){
+	int ak = getAK();
+	vector<double> lims; 
+	for(int i = 1; i < (ak-1); i++){
+		if(getAK() > i){
+			lims = getLimits(actIndex[i]);
+			if(lims[0] > -slpTol){
+				removeActive(actIndex[i]);
+			}
+		}
+	}
+}

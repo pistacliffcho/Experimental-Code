@@ -92,11 +92,11 @@ class LogConCenPH : public LCBase {
 	public:
 	double llk();
 	double nullk();
-	LogConCenPH(int MoveX, vector<double> X, vector<double> B, 
-				vector<int> L_ind, vector<int> R_ind, vector<int> actInds,
-				bool allow_x_move, double augl, double augr, QuadProgPP::Matrix<double> Covars,
-				int num_cov);
-//	vector <double> nu;
+LogConCenPH(int MoveX, vector<double> X, vector<double> B, vector<int> L_ind, 
+				   	vector<int> R_ind, vector<int> actInds, bool allow_x_move, double augl,
+					double augr, QuadProgPP::Matrix<double> Covars, int num_cov, int LMAXIND,
+				   	int RMININD, double LLAGRMIN, double RLAGRMIN, int MAXUNCENSBETAIND,
+				   	int MAXUNCENSOBSIND,bool HASUNCENSORED);
     void updateNu();
 	double	augLeft, augRight;
 	void calcDervVec();
@@ -114,6 +114,18 @@ class LogConCenPH : public LCBase {
 
 	vector<double> p;
 	void update_p(int index1, int index2);
+	bool update_all_p();		//return type indicates where finite value
+	
+	double calculateLagrangePenalty();
+	double lagrangeMultiplier;
+	int l_max_ind;
+	int r_min_ind;
+	double leftLagrangeMin;
+	double rightLagrangeMin;
+	vector<bool> isMovable;
+	bool uncensoredObs;
+	int maxUncensoredBInd;
+	int maxUncensoredObsInd;
 	void p2s();
 	double fastBasellk();
 	void fastNumActDers();
@@ -122,4 +134,5 @@ class LogConCenPH : public LCBase {
 	double partialDerCovOrBase(int i, int j);
 	
 	double updateOnFlyLoop();
+	void checkAllActive();
 };

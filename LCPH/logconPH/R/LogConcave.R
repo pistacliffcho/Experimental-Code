@@ -1,39 +1,38 @@
+
 logconcave = function(times, covariates, aug = TRUE){
   if(missing(covariates))
     return(logconcave.univariate(times) )
   recenter = FALSE
   if(class(times) == "numeric"){
+  	
+  	# This is the case when we have only uncensored observations
+  	
     n <- length(times)
     augVal = 0
     if(aug == TRUE)
       augVal = 1/(2*n)
     
-    x <- unique(sort(times))
-    
-    max_ind = which(times == max(times))
-    if(length(max_ind) > 1)
-      stop('Problem: two uncensored values tied for last. Need to decide what to do about this. See Anderson-Bergman 2013 appendix E')
-    
-    covariates <- as.matrix(covariates)
- #   center_Covar <- covariates[max_ind, ]
- #   covariates <- t(t(covariates) - center_Covar)
-    
-    if(max(x) == Inf | min(x) == -Inf)
+    x <- unique(c(sort(times), max(times ) + 1, Inf) )
+	minValInd = 1
+	if(min(x) > 0){
+		x <- c(0, x)
+		minValInd = 2
+	}    
+    covariates <- as.matrix(covariates)    
+    if(max(times) == Inf | min(times) == -Inf)
       stop("Error: non finite values supplied")
     b = rep(0, length(x))
-    output = .Call('LC_CoxPH', times, times, x, b, as.integer( c(1, length(x) ) ), FALSE, augVal, augVal, as.matrix(covariates) )
-    names(output) <- c("x", "phi", "llk", "beta", "full_Hess")
-   	l_beta = length(output$beta)
-   	hess_dim = length(output$full_Hess[,1])
-    output$beta_Covariance = -solve(output$full_Hess[-hess_dim, -hess_dim])[1:l_beta, 1:l_beta]
-    output[['dens']] <- exp(output$phi)
-    if(recenter == FALSE)
-      output[['covOffset']] <- rep(0, length(output$beta))
-    class(output) <- "LCPHObject"
-    return(output)
+    k <- length(x)
+    b[k] <- -Inf
+    maxObsInd <- which(times == x[k-2])[1]
+    cat("x = \n", x, '\nb = \n', b, '\n')
+    cOutput = .Call('LC_CoxPH', times, times, x, b, as.integer( c(1, length(x) - 1 ) ), FALSE, augVal, augVal, as.matrix(covariates), as.integer(minValInd), as.integer(k-2), as.integer(k-2), as.integer(maxObsInd) , TRUE )
+    return(prepLCPHOutput(cOutput))
   }
   
-#  if(is.matrix(times))
+  stop('cannot yet handle interval censored data')
+#  This considers the when the data is entered in the interval censored format
+
    int.Data = as.matrix(times)
    
    if(ncol(int.Data) != 2)
@@ -50,13 +49,8 @@ logconcave = function(times, covariates, aug = TRUE){
     x = x.use
     l.dens = log(density)
     stop("Estimator degenerate; universal overlap in data")
-    #		output <- list(x.use, density, lk.final, it, x, l.dens)
-    #	cat("Note: Universal overlap leads to poorly performing estimator!\n")
-    #	names(output) <- c("x", "dens", "lk", "it", "x.all", "l.dens")
-    #	return(output)
   }	
-  
-  
+    
   output = start.Inf(l, u)
   x = output[[1]]
   b = output[[2]]
@@ -80,17 +74,19 @@ logconcave = function(times, covariates, aug = TRUE){
   maxX = if(x[length(x)] == Inf) length(x) - 1 else length(x) 
   actInds = c(minX, which(b == max(b) ) , maxX )
   inds <- make.inds(x, l,u)
-  output = .Call('LC_CoxPH', l, u, x, b, as.integer(actInds), TRUE, augVal, augVal, as.matrix(covariates) )
-  names(output) <- c("x", "phi", "llk", "beta", "full_Hess")
-  l_beta = length(output$beta)
-  hess_dim = length(output$full_Hess[,1])
-  output$beta_Covariance = -solve(output$full_Hess[-hess_dim, -hess_dim])[1:l_beta, 1:l_beta]
-  output$beta_Covariance = try(-solve(output$full_Hess)[1:l_beta, 1:l_beta])
-  output[['dens']] <- exp(output$phi)
-  if(recenter == FALSE)
-    output[['covOffset']] <- rep(0, length(output$beta))
-  class(output) <- "LCPHObject"
-  return(output)
+  cOutput = .Call('LC_CoxPH', l, u, x, b, as.integer(actInds), TRUE, augVal, augVal, as.matrix(covariates) )
+  return(prepLCPHOutput(cOutput))
+}
+
+
+prepLCPHOutput <- function(output){
+    names(output) <- c("x", "phi", "llk", "beta", "full_Hess")
+   	l_beta = length(output$beta)
+   	hess_dim = length(output$full_Hess[,1])
+    output$beta_Covariance = -solve(output$full_Hess[-hess_dim, -hess_dim])[1:l_beta, 1:l_beta]
+    output[['dens']] <- exp(output$phi)
+    class(output) <- "LCPHObject"
+	return(output)	
 }
 
 simPH_Censored <- function(n = 100, b1 = 0.5, b2 = -0.5, shape = 2){
@@ -109,6 +105,16 @@ simPH_Censored <- function(n = 100, b1 = 0.5, b2 = -0.5, shape = 2){
   return(output)
 }
 
+sim_Censored <- function(n = 100){
+	l = rep(0, n)
+	u = rep(1, n)
+	time = rbeta(n, 2, 2)
+	cTime = runif(n)
+	isLeftCens <- time < cTime
+	u[isLeftCens] <- cTime[isLeftCens]
+	l[!isLeftCens] <- cTime[!isLeftCens]
+	return(cbind(l, u))
+}
 
 
 logconcave.univariate = function(data){

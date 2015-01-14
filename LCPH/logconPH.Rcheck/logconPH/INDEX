@@ -1,0 +1,11 @@
+dLC                     Density estimates from a log concave fit
+linesLC                 Draws Lines for Logconcave Fit
+logconPH-package        Computing a Cox PH Model with a Log Concave
+                        Baseline
+logconcave              Cox PH model with Log Concave Baseline
+pLC                     Probability estimates from a log concave fit
+plotLC                  Plots Logconcave Fit
+qLC                     Quantiles estimates from a log concave fit
+simPH_Censored          Simulate current status data from Cox-PH model
+sim_Censored            Simulate current status data from a beta(2,2)
+                        distribution
