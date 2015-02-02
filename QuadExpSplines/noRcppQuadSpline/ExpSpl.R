@@ -1,15 +1,22 @@
 dyn.load('~/Desktop/Shape-Constraints/QuadExpSplines/noRcppQuadSpline/quadExpSplineCalls.so')
-
+library(logconPH)
 newC_ExpSplineObject <- function(knotLocation, initialParameters, exactVals, leftCen, rightCen, allNecessarySortedVals){
 	.Call('makeAndSaveSplineInfo', knotLocation, initialParameters, exactVals, leftCen, rightCen, allNecessarySortedVals)
+}
+
+findMaximalIntersections <- function(left, right, exact){
+	lVals <- sort(unique(c(left, exact) ) )
+	rVals <- sort(unique(c(right, exact) ) )
+	output <- .Call('findMaximalIntersections', lVals, rVals)
+	return(output)
 }
 
 makeNewExpSpline_internal <- function(exactVals, leftCen, rightCen, knotLocation, initialParameters, survival = TRUE){
 	
 	knotLocation = sort(unique(knotLocation))
 	
-	if( (length(knotLocation) + 2) != length(initialParameters))
-		stop("length(knotLocation) + 2 != length(initialParam)")
+	if( (length(knotLocation) ) != length(initialParameters))
+		stop("length(knotLocation)  != length(initialParam)")
 
 	#Make sure interval censored data is correctly specified
 	if(length(leftCen) != length(rightCen))
@@ -42,22 +49,26 @@ expSpline <- setRefClass(Class = 'invConSpline', fields = '.ptr', methods = list
 								updateParamsAndCalc = function(newParams){
 									.Call('updateSplineParams', newParams, .ptr)
 								},
-								getCumSum = function()
-									.Call('getCumSum', .ptr)
+								getCumSum = function() {return(.Call('getCumSum', .ptr))},
+								getDensities = function(newValues, verbose = FALSE){
+									newValues = as.numeric(newValues)
+									.Call('evalNewDensities', newValues, verbose, .ptr)
+								},
+								plotFit = function(vals, col = 'black'){
+									vals <- vals[vals > -Inf & vals < Inf]
+									vals <- sort(vals)
+									estimatedDens <- getDensities(sort(vals) )
+									plot(vals, estimatedDens, xlab = "x", ylab = "Estimated Density", type = 'l',  col = col)
+								},
+								optimizeSpline = function(tol = 0.000001, maxit = 100, verbose = FALSE){
+									.Call('optimizeSpline', .ptr,
+										as.numeric(tol), 
+										as.integer(maxit),  
+										as.logical(verbose) )
+								},
+								printParams = function(){
+									.Call('printSplineParameters', .ptr)
+								}
 								))
 newExpSplineObject <- function(exactVals, leftCen, rightCen, knotLocation, initialParameters, survival = TRUE)
 	expSpline(exactVals, leftCen, rightCen, knotLocation, initialParameters, survival = survival)
-
-testKnots = c(-2, -1, 0, 1, 2)
-exactVals = rnorm(5000)
-leftCen = numeric()
-rightCen = numeric()
-initVals <- c(5, 1, 1, 1, 1, 1, 1)
-
-mySpline <- newExpSplineObject(exactVals, leftCen, rightCen, testKnots, initialParameters = initVals, survival = FALSE)
-mySpline$updateParamsAndCalc(initVals)
-system.time( optimFit <- optim(par = initVals, fn = mySpline$updateParamsAndCalc, control = list(fnscale = -1, maxit = 5000)) )
-optimFit
-
-#cumSum <- mySpline$getCumSum()
-#cumSum/cumSum[length(cumSum)]
