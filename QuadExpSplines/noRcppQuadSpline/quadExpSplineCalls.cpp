@@ -1,4 +1,3 @@
-
 #include "quadExpSplineDefs.h"
 #include "quadExpSplineClassMethods.cpp"
 #include "quadExpSplineUtilities.cpp"
@@ -167,3 +166,4 @@ SEXP printSplineParameters(SEXP rPointer){
 	
 	return(R_NilValue);
 }
+

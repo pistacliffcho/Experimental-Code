@@ -1,5 +1,5 @@
 dyn.load('~/Desktop/Shape-Constraints/QuadExpSplines/noRcppQuadSpline/quadExpSplineCalls.so')
-library(logconPH)
+#library(logconPH)
 newC_ExpSplineObject <- function(knotLocation, initialParameters, exactVals, leftCen, rightCen, allNecessarySortedVals){
 	.Call('makeAndSaveSplineInfo', knotLocation, initialParameters, exactVals, leftCen, rightCen, allNecessarySortedVals)
 }
@@ -15,8 +15,11 @@ makeNewExpSpline_internal <- function(exactVals, leftCen, rightCen, knotLocation
 	
 	knotLocation = sort(unique(knotLocation))
 	
-	if( (length(knotLocation) ) != length(initialParameters))
-		stop("length(knotLocation)  != length(initialParam)")
+    #	if( (length(knotLocation) ) != length(initialParameters))
+    #	stop("length(knotLocation)  != length(initialParam)")
+
+    if( (length(knotLocation) + 3) != length(initialParameters))
+        stop("length(knotLocation) +3 != length(initialParameters")
 
 	#Make sure interval censored data is correctly specified
 	if(length(leftCen) != length(rightCen))

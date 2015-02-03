@@ -5,7 +5,7 @@ QuadSplinellk::QuadSplinellk(vector<double> knots, vector<double> params, vector
 		numKnots = knots.size() ;
 		cum_sum.resize(allNecessarySortedValues.size() );
 		totN = exactVals.size() + leftCens.size();
-		h = 0.0001;
+		h = 0.005;
 		int cens_num = leftCens.size();
 		splineInfo.aVec.resize(numKnots + 1);
 		splineInfo.bVec.resize(numKnots + 1);
@@ -122,7 +122,8 @@ double QuadSplinellk::computeLLK(){
 
 // SplineInfo Class
 void SplineInfo::fill_quadParams(){
-	fill_quadParamWith_heights(splineParam, knots, aVec, bVec, cVec);
+	//fill_quadParamWith_heights(splineParam, knots, aVec, bVec, cVec);
+	fill_quadParamsWithNew_a_param(splineParam, knots, aVec, bVec, cVec);
 }
 
 void fill_quadParamsWithNew_a_param(vector<double> &splineParam, vector<KnotInfo> &knots,
@@ -269,8 +270,8 @@ void QuadSplinellk::optimize(double tol, int maxit, bool verbose){
 	if(currentLLK > R_NegInf){
 		while(currentInt < maxit && currentError  > tol){
 			currentInt++;
-			ICMstep();
-		
+//			ICMstep();
+            ConjGradStep();
 			currentError = currentLLK - oldLLK;
 			oldLLK = currentLLK;
 //			splineInfo.splineParam[0] -= log(cum_sum[cum_sum.size()-1]);
@@ -463,6 +464,63 @@ void QuadSplinellk::multiVariateUpdate(){
 }
 
 
+void QuadSplinellk::ConjGradStep(){
+	//This is using with the parameterization in which
+	//each parameter is the change in derivate
+	int parNum = splineInfo.splineParam.size() - 1; // The intercept does not affect the likelihood, so we don’t try to optimize it
+	vector<double> theseDervs;
+	vector<double> d1_vec(parNum);
+	vector<double> d2_vec(parNum);
+	vector<double> propVec(parNum);
+	double propLLK1, propLLK2;
+	for(int i = 0; i < parNum; i++){
+		theseDervs = getUnivariateDervs(i + 1);
+		d1_vec[i] = theseDervs[0];
+		d2_vec[i] = theseDervs[1];
+        if(!(d2_vec[i] < -0.01)){ d2_vec[i] = -1;}
+	}
+	propVec[0] = -d1_vec[0]/d2_vec[0];
+	for(int i = 1; i < parNum; i++){
+		propVec[i] = -d1_vec[i]/d2_vec[i];
+		if(propVec[i] > -splineInfo.splineParam[i+1]){ propVec[i] = -splineInfo.splineParam[i+1];}
+	}
+    for(int i = 0; i <parNum; i++){
+        if(!(propVec[i] < 1000000 || propVec[i] > -1000000)) {
+            Rprintf("In Conjugate Gradient Step, proposed value = %f. SplineParam = %f. d1 = %f, d2 = %f, Index = %d \nQuiting without optimizing\n", propVec[i],splineInfo.splineParam[i], d1_vec[i], d2_vec[i], i);
+            return;
+        }
+    }
+    
+    for(int i = 0; i < parNum; i++){    splineInfo.splineParam[i+1] += propVec[i];  }
+    propLLK1 = computeLLK();
+    for(int i = 0; i < parNum; i++) { propVec[i] = -propVec[i]/2;   }
+    for(int i = 0; i < parNum; i++){    splineInfo.splineParam[i+1] += propVec[i];  }
+    propLLK2 = computeLLK();
+    if(max(propLLK1, propLLK2) > currentLLK){
+        if(propLLK1 > propLLK2){
+            for(int i = 0; i<parNum; i++){ splineInfo.splineParam[i+1] -= propVec[i];}
+            currentLLK = propLLK1;
+            return;
+        }
+        currentLLK = propLLK2;
+        return;
+    }
+    
+    int it = 0;
+    while(it < 10){
+        it++;
+        for(int i = 0; i < parNum; i++) { propVec[i] = propVec[i]/2;   }
+        for(int i = 0; i < parNum; i++){    splineInfo.splineParam[i+1] += propVec[i];  }
+        propLLK1 = computeLLK();
+        if(propLLK1 > currentLLK){
+            currentLLK = propLLK1;
+            return;
+        }
+    }
+    Rprintf("Half stepping failed in Conjugate Gradient Step!\n");
+    for(int i = 0; i < parNum; i++) { propVec[i] = propVec[i];   }
+
+}
 
 
 void QuadSplinellk::ICMstep(){

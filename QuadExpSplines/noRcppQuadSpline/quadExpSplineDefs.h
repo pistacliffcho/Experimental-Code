@@ -186,7 +186,10 @@ class QuadSplinellk{
 	
 	vector<double> getBivariateDervs(int ind1, int ind2);	
 	void bivariateUpdate(int index1, int index2, bool verbose);
-	void multiVariateUpdate();
+	void multiVariateUpdate();  //I don't think this really works right now...
+    
+    void ConjGradStep(); //This is to be used in the case on the parameterization
+                                        //where each parameter is the new 'a' in ax^2 + bx + c
 	void optimize(double tol, int maxit, bool verbose);
 
 	void ICMstep();

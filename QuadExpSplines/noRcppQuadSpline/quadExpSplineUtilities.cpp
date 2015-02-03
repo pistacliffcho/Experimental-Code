@@ -34,7 +34,7 @@ std::vector<double> intInverseQuad(double a, double b, double c,
 		return(output);
 	}
 	
-	if( a < 0.01){
+	if( a < -0.01){
 	double sigma = 1 / sqrt(-2 * a);
 	double s2 = sigma * sigma;
 	double mu = b * s2;
@@ -44,9 +44,9 @@ std::vector<double> intInverseQuad(double a, double b, double c,
 			output[i] = intQuadExp_FromNormalParameters(mu, sigma, phi, lowVals[i], highVals[i]);
 	}
 	else{
-		double w0, w1;
-		w0 = -a;
-		w1 = 1 - w0;
+		double w0, w1;  // x0 = -0.01, h = 0.01
+        w0 = 1 - a/0.01;
+		w1 = a/0.01;
 
 		double sigma = 1 / sqrt(0.02);
 		double s2 = sigma * sigma;
