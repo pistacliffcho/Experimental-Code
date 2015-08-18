@@ -11,3 +11,155 @@ mySpline$optimizeSpline(maxit = 500)
 optimFit <-optim(initialValues, mySpline$updateParamsAndCalc, control = list(fnscale= -1))
 optimFit
 mySpline$optimizeSpline(maxit = 500)
+source('~/Desktop/Shape-Constraints/QuadExpSplines/noRcppQuadSpline/ExpSpl.R', chdir = TRUE)#
+exactVals = rnorm(120)#
+K = 5#
+knotLocations = quantile(exactVals, probs = c(1:K/(K+1) ) )#
+initialValues = c(0, 1, rep(-.1, K+1) )#
+#
+mySpline <- expSpline(exactVals, numeric(), numeric(), knotLocations,#
+					 initialValues, survival = FALSE)#
+mySpline$updateParamsAndCalc(initialValues)#
+mySpline$optimizeSpline(maxit = 500)#
+#
+optimFit <-optim(initialValues, mySpline$updateParamsAndCalc, control = list(fnscale= -1))
+myOptFun <- function(x) mySpline$updateParamsAndCalc( c(0, x))
+optimFit
+optimFit2 <- optim(initialValues[-1], mySpline$updateParamsAndCalc, control = list(fnscal = -1))
+optimFit2 <- optim(initialValues[-1], myOptFun, control = list(fnscal = -1))
+optimFit2 <- optim(initialValues[-1], myOptFun, control = list(fnscale = -1))
+optimFit
+optimFit2 <- optim(initialValues[-1], myOptFun, control = list(fnscale = -1, maxit = 1000))
+optimFit2
+mySpline$plotFit(-40:40/10)
+mySpline$plotFit(-50:50/10)
+optimFit2
+optimFit
+mySpline$plotFit(-50:50/10)
+optimFit <-optim(initialValues, mySpline$updateParamsAndCalc, control = list(fnscale= -1))
+mySpline$plotFit(-50:50/10)
+mySpline$optimizeSpline()
+optimFit3 <- optim(initialValues[-1], myOptFun, control = list(fnscale = -1, maxit = 500), method = 'L-BFGS-B', upper = c(Inf, rep(0, length(initialValues) - 2))
+)
+optimFit3
+optimFit4 <- optim(initialValues[-1], myOptFun, control = list(fnscale = -1, maxit = 5000))
+optimFit4
+mySpline$updateParamsAndCalc(c(0,optimFit$par) )
+mySpline$plotFit(exactVals)
+hist(exactVals)
+sum(dnorm(exactVals, log = TRUE))
+source('~/Desktop/Shape-Constraints/QuadExpSplines/noRcppQuadSpline/ExpSpl.R', chdir = TRUE)#
+exactVals = rnorm(120)#
+K = 5#
+knotLocations = quantile(exactVals, probs = c(1:K/(K+1) ) )#
+initialValues = c(0, 1, rep(-.1, K+1) )#
+#
+mySpline <- expSpline(exactVals, numeric(), numeric(), knotLocations,#
+					 initialValues, survival = FALSE)#
+mySpline$updateParamsAndCalc(initialValues)#
+mySpline$optimizeSpline(maxit = 500)#
+#
+optimFit <-optim(initialValues, mySpline$updateParamsAndCalc, control = list(fnscale= -1))
+myOptFun <- function(x) mySpline$updateParamsAndCalc( c(0, x))
+optimFit2 <- optim(initialValues[-1], myOptFun, control = list(fnscale = -1, maxit = 1000))
+optimFit2
+optimFit2 <- optim(initialValues[-1], myOptFun, control = list(fnscale = -1, maxit = 5000))
+optimFit2
+source('~/Desktop/Shape-Constraints/QuadExpSplines/noRcppQuadSpline/ExpSpl.R', chdir = TRUE)#
+exactVals = rnorm(120)#
+K = 5#
+knotLocations = quantile(exactVals, probs = c(1:K/(K+1) ) )#
+initialValues = c(0, 1, rep(-.1, K+1) )#
+#
+mySpline <- expSpline(exactVals, numeric(), numeric(), knotLocations,#
+					 initialValues, survival = FALSE)#
+mySpline$updateParamsAndCalc(initialValues)#
+mySpline$optimizeSpline(maxit = 500)#
+#
+optimFit <-optim(initialValues, mySpline$updateParamsAndCalc, control = list(fnscale= -1))#
+#
+myOptFun <- function(x) mySpline$updateParamsAndCalc( c(0, x))
+optimFit
+source('~/Desktop/Shape-Constraints/QuadExpSplines/noRcppQuadSpline/ExpSpl.R', chdir = TRUE)#
+exactVals = rnorm(120)#
+K = 5#
+knotLocations = quantile(exactVals, probs = c(1:K/(K+1) ) )#
+initialValues = c(0, 1, rep(-.1, K+1) )#
+#
+mySpline <- expSpline(exactVals, numeric(), numeric(), knotLocations,#
+					 initialValues, survival = FALSE)#
+mySpline$updateParamsAndCalc(initialValues)#
+mySpline$optimizeSpline(maxit = 500)
+exactVals = rnorm(120)#
+K = 5#
+knotLocations = quantile(exactVals, probs = c(1:K/(K+1) ) )#
+initialValues = c(0, 1, rep(-.1, K+1) )#
+#
+mySpline <- expSpline(exactVals, numeric(), numeric(), knotLocations,#
+					 initialValues, survival = FALSE)#
+mySpline$updateParamsAndCalc(initialValues)#
+mySpline$optimizeSpline(maxit = 500)
+source('~/Desktop/Shape-Constraints/QuadExpSplines/noRcppQuadSpline/ExpSpl.R', chdir = TRUE)#
+exactVals = rnorm(120)#
+K = 5#
+knotLocations = quantile(exactVals, probs = c(1:K/(K+1) ) )#
+initialValues = c(0, 1, rep(-.1, K+1) )#
+#
+mySpline <- expSpline(exactVals, numeric(), numeric(), knotLocations,#
+					 initialValues, survival = FALSE)#
+mySpline$updateParamsAndCalc(initialValues)#
+mySpline$optimizeSpline(maxit = 500)
+optimFit <-optim(initialValues, mySpline$updateParamsAndCalc, control = list(fnscale= -1, maxit = 5000))
+optimFit
+mySpline$updateParamsAndCalc(initialValues)#
+mySpline$optimizeSpline(maxit = 500)
+system.time(mySpline$optimizeSpline(maxit = 500))
+K = ceiling(n ^ (1/3) ) + 1
+n = 50000#
+K = ceiling(n ^ (1/3) ) + 1
+K
+exactVals <- rnorm(n)
+knotLocations = quantile(exactVals, probs = 1:K/(K+1))#
+initialValues <- c(0, 1, rep(-.1, K+1) )
+initialValues
+mySpline <- expSpline(exactVals, numeric(), numeric(), knotLocations, initialValues, survival = FALSE)
+mySpline$optimizeSpline(maxit = 5000)
+sum(dnorm(exactVals, log = TRUE))
+mySpline$plotFit(exactVals)
+mySpline$plotFit
+optimFit <-optim(initialValues, mySpline$updateParamsAndCalc, control = list(fnscale= -1, maxit = 5000))
+optimFit
+source('~/Desktop/Shape-Constraints/QuadExpSplines/noRcppQuadSpline/ExpSpl.R', chdir = TRUE)
+n = 50000#
+K = ceiling(n ^ (1/3) ) + 1#
+exactVals <- rnorm(n)#
+knotLocations = quantile(exactVals, probs = 1:K/(K+1))#
+initialValues <- c(0, 1, rep(-.1, K+1) )#
+mySpline <- expSpline(exactVals, numeric(), numeric(), knotLocations, initialValues, survival = FALSE)#
+mySpline$optimizeSpline(maxit = 5000)#
+optimFit <-optim(initialValues, mySpline$updateParamsAndCalc, control = list(fnscale= -1, maxit = 5000))
+optimFit
+optimFit <-optim(initialValues, mySpline$updateParamsAndCalc, control = list(fnscale= -1, maxit = 10000))
+optimFit
+mySpline$optimizeSpline(maxit = 5000)
+source('~/Desktop/Shape-Constraints/QuadExpSplines/noRcppQuadSpline/ExpSpl.R', chdir = TRUE)
+n = 50000#
+K = ceiling(n ^ (1/3) ) + 1#
+exactVals <- rnorm(n)#
+knotLocations = quantile(exactVals, probs = 1:K/(K+1))#
+initialValues <- c(0, 1, rep(-.1, K+1) )#
+mySpline <- expSpline(exactVals, numeric(), numeric(), knotLocations, initialValues, survival = FALSE)#
+mySpline$optimizeSpline(maxit = 5000)
+optimFit <-optim(initialValues, mySpline$updateParamsAndCalc, control = list(fnscale= -1, maxit = 10000))
+optimFit
+optimFit <-optim(initialValues, mySpline$updateParamsAndCalc, control = list(fnscale= -1, maxit = 20000))
+optimFit
+mySpline$updateParamsAndCalc(initialValues)
+system.time( mySpline$optimizeSpline(maxit = 5000) )
+library(logconPH)
+system.time(lcFit <- logconcave(exactVals) )
+mySpline$plotFit(exactVals)
+mySpline$plotFit(exactVals, col = 'blue')
+lines(-400:400/100, dnorm(-400:400/100))
+fittedVals <- dLC(-400:400/100, lcFit)
+lines(-400:400/100, fittedVals, col = 'red')

@@ -1,0 +1,9 @@
+useDynLib(InvCon)
+#exportPattern("^[[:alpha:]]+")
+
+export("inverse.convex")
+export("dIC")
+export("qIC")
+export("pIC")
+export("plot.ICfit")
+importFrom(Rcpp, evalCpp)

@@ -28,7 +28,8 @@ std::vector<double> intInverseQuad(double a, double b, double c,
 	return(output);
 	}
 	
-	if(a >= 0.01){
+	if(a > 0.001){
+//        Rprintf("note: a > 0\n");
 		for(int i = 0; i < sizeLow; i++)
 			output[i] = R_PosInf;
 		return(output);

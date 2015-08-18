@@ -5,7 +5,7 @@ QuadSplinellk::QuadSplinellk(vector<double> knots, vector<double> params, vector
 		numKnots = knots.size() ;
 		cum_sum.resize(allNecessarySortedValues.size() );
 		totN = exactVals.size() + leftCens.size();
-		h = 0.005;
+		h = 0.0001;
 		int cens_num = leftCens.size();
 		splineInfo.aVec.resize(numKnots + 1);
 		splineInfo.bVec.resize(numKnots + 1);
@@ -229,7 +229,11 @@ vector<double> QuadSplinellk::getUnivariateDervs(int index){
 	vector<double> output(2);
 	output[0] = (high_llk - low_llk) / (2*h);
 	output[1] = (high_llk + low_llk - 2*currentLLK) / (h*h);
-	return(output);
+    if(high_llk == R_NegInf){
+        output[0] = (currentLLK - low_llk)/ h;
+        output[1] = -1;
+    }
+    return(output);
 }
 
 vector<double> QuadSplinellk::getBivariateDervs(int ind1, int ind2){
@@ -486,7 +490,14 @@ void QuadSplinellk::ConjGradStep(){
 	}
     for(int i = 0; i <parNum; i++){
         if(!(propVec[i] < 1000000 || propVec[i] > -1000000)) {
-            Rprintf("In Conjugate Gradient Step, proposed value = %f. SplineParam = %f. d1 = %f, d2 = %f, Index = %d \nQuiting without optimizing\n", propVec[i],splineInfo.splineParam[i], d1_vec[i], d2_vec[i], i);
+            Rprintf("In Conjugate Gradient Step, proposed value = %f. SplineParam = %f. d1 = %f, d2 = %f, Index = %d \nQuiting without optimizing\n", propVec[i],splineInfo.splineParam[i + 1], d1_vec[i], d2_vec[i], i);
+            Rprintf("aVec = \n");
+            for(int j = 0; j < splineInfo.aVec.size(); j++)
+                Rprintf("%f  ", splineInfo.aVec[j]);
+            Rprintf("\nspline parameters = \n");
+            for(int j = 0; j < splineInfo.splineParam.size(); j++)
+                Rprintf("%f  ", splineInfo.splineParam[j]);
+            Rprintf("\n");
             return;
         }
     }
@@ -518,7 +529,7 @@ void QuadSplinellk::ConjGradStep(){
         }
     }
     Rprintf("Half stepping failed in Conjugate Gradient Step!\n");
-    for(int i = 0; i < parNum; i++) { propVec[i] = propVec[i];   }
+    for(int i = 0; i < parNum; i++) { splineInfo.splineParam[i+1] += propVec[i];   }
 
 }
 

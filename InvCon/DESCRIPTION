@@ -1,0 +1,12 @@
+Package: InvCon
+Type: Package
+Title: Fits the Inverse Convex Estimator
+Version: 1.0
+Date: 2014-07-26
+Author: Clifford Anderson-Bergman
+Maintainer: Clifford Anderson-Bergman <cianders@uci.edu>
+Description: Fits an estimate such it is restrained to being inverse convex, i.e. f(x) = 1/g(x) where g(x) is convex.
+License: NA
+Imports: Rcpp (>= 0.11.2)
+LinkingTo: Rcpp
+Packaged: 2014-07-26 19:52:11 UTC; Cliff

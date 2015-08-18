@@ -1,3 +1,5 @@
+library(logsplines)
+
 dyn.load('~/Desktop/Shape-Constraints/QuadExpSplines/noRcppQuadSpline/quadExpSplineCalls.so')
 #library(logconPH)
 newC_ExpSplineObject <- function(knotLocation, initialParameters, exactVals, leftCen, rightCen, allNecessarySortedVals){
@@ -10,6 +12,22 @@ findMaximalIntersections <- function(left, right, exact){
 	output <- .Call('findMaximalIntersections', lVals, rVals)
 	return(output)
 }
+
+
+logsplineWithMI <- function(intData, uncenData = numeric(), degreePower = 1/3, delete = TRUE, surv = TRUE){
+	maxInts <- findMaximalIntersections(intData[,1], intData[,2], uncenData)
+	K <- floor(length(maxInts) ^ degreePower)
+	knots2use <- quantile(maxInts, probs = 1:(K-1) / K )
+	if(surv == TRUE)
+	knots2use <- unique( c(0, knots2use, Inf) )
+	if(length(uncenData) == 0)
+		lsFit <- oldlogspline(interval = intData, knots = knots2use, delete = delete)
+	else(length(uncenData) > 0)
+		lsFit <- oldlogspline(uncensored = uncenData, interval = intData, knots = knots2use, delete = delete)
+	return(lsFit)
+}
+
+
 
 makeNewExpSpline_internal <- function(exactVals, leftCen, rightCen, knotLocation, initialParameters, survival = TRUE){
 	
