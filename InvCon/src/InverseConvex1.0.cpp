@@ -315,11 +315,11 @@ void act_d_vec(NumericVector x, NumericVector d_vec, IntegerVector act_inds, Num
 	
 double p_ic(double x, NumericVector fit_x, NumericVector fit_dens)  /* calculates estimated cdf from fit */
 	{
-	double p = 0;
+//	double p = 0;
 	double denom = 0;
 	double db = 0;
 	double dx = 0;
-	double mass = 0;
+//	double mass = 0;
 	int it = 0;
 	int k = fit_x.size();
 	if(x <= fit_x[0])
@@ -386,7 +386,7 @@ double d_ic(double x, NumericVector fit_x, NumericVector fit_dens)    /* calcula
 	if(x > fit_x[k-1])
 		return(0);
 	dx = 0;
-	double b = 0;
+//	double b = 0;
 	double g = 0;
 	for(int i = 0; i < (k-1); i++)
 		{
@@ -398,6 +398,7 @@ double d_ic(double x, NumericVector fit_x, NumericVector fit_dens)    /* calcula
 			return(1/(g*mass) );
 			}
 		}
+        return(0.0);
 	}		
 		
 	
