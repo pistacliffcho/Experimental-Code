@@ -1,0 +1,4 @@
+bivariateNPMLE          Computes the MLE for Bivariate Interval
+                        Censored Data
+optCliq                 Computes the MLE for a Binary Mixture Model
+simBVCen                Simulates Bivariate Interval Censored Data

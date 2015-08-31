@@ -1,0 +1,12 @@
+* installing *source* package ‘bivariateCensored’ ...
+** libs
+make: Nothing to be done for `all'.
+make: `symbols.rds' is up to date.
+installing to /Users/cliffandersonbergman/Desktop/gitProjects/bivariateCensored.Rcheck/bivariateCensored/libs
+** R
+** preparing package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** testing if installed package can be loaded
+* DONE (bivariateCensored)

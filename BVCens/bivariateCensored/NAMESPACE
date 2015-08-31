@@ -1,0 +1,5 @@
+useDynLib(bivariateCensored)
+import(MLEcens)
+export(optCliq)
+export(bivariateNPMLE)
+export(simBVCen)
