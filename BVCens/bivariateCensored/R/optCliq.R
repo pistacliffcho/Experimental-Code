@@ -1,20 +1,56 @@
 optCliq <- function(cliqMat, tol = 10^-10, inner_loops = 100, outer_loops = 20){
   c_ans <- .Call('optCliq', cliqMat, tol, as.integer(inner_loops), as.integer(outer_loops))
-  ans <- cliqOptInfo(c_ans)
+  ans <- cliqOptInfo(c_ans, tol)
   return(ans)
 }
 
+initICNPMLE <- function(L, R, Lin = NULL, Rin = NULL, A = NULL, 
+                        max.inner = 100, max.outer = 100, tol = 1e-10){
+    hm <- NULL
+#    if(is.null(A) ){
+      if(is.null(Lin))  Lin <- 1
+      if(is.null(Rin))  Rin <- 1
+    
+      n <- length(L)
+      if(n != length(R) ) stop('length(L) != length(R)')
+    
+      timeMatrix <- cbind(L, R, 0, 1)
+      if(length(Lin) == 1 & length(Rin)) B <- c(Lin, Rin)
+      else{
+        if(length(Lin) != n | length(Rin) != n) stop('length of Lin or Rin not equal to 1 or n')
+        B <- as.matrix( cbind(Lin, Rin, 1, 1) )
+      }
+    hm <- MLEcens::reduc(timeMatrix, B, cm = TRUE)
+    A <- t(hm$cm)
+#    }
+#  else
+#  storage.mode(A) <- 'integer'
+  cliqFit <- optCliq(A, tol, inner_loops = max.inner, outer_loops = max.outer)
+  
+  ans <- list(pf = cliqFit$pvec, intmap = t( hm$rects[,1:2]  ) )
+  class(ans) <- 'icfit'
+  return(ans)
+}
 
-
-bivariateNPMLE <- function(times, tol = 10^-10, inner_loops = 100, outer_loops = 20){
+ICNPMLE <- function(times, B = c(1,1), max.inner = 100, max.outer = 100, tol = 1e-10){
   times <- as.matrix(times)
-  hmInfo <- MLEcens::reduc(times, cm = T)
+  univariate = FALSE
+  if(ncol(times) == 2){
+    times <- cbind(times, 0, 1)
+    univariate = TRUE
+  }
+  
+  if(ncol(times) != 4){
+    stop('number of columns of times not equal to 2 or 4')
+  }
+  hmInfo <- MLEcens::reduc(times, B = B, cm = T)
   cliqs <- t(hmInfo$cm)
   
-  optCliqInfo <- optCliq(cliqs, tol, inner_loops, outer_loops)
-  ans <- bvCenInfo(optCliqInfo, hmInfo$rects)
+  optCliqInfo <- optCliq(cliqs, tol = tol, inner_loops = max.inner, outer_loops = max.outer)
+  ans <- IC_NPMLE(optCliqInfo, hmInfo$rects, isUni = univariate, B = B)
   return(ans)
 }
+
 
 simBVCen <- function(n = 1000){
   t1 <- runif(n)
@@ -58,7 +94,7 @@ simBVCen <- function(n = 1000){
 }
 
 cliqOptInfo <- setRefClass('cliqOptInfo',
-                           fields = c('pvec', 'llh', 'error', 'tot_iters', 'outer_iters'),
+                           fields = c('pvec', 'llh', 'error', 'tot_iters', 'outer_iters', 'conv'),
                            methods = list(
                              show = function(){
                                cat('Clique Optimizer Object\n')
@@ -66,32 +102,41 @@ cliqOptInfo <- setRefClass('cliqOptInfo',
                                    error, '\nTotal iterations = ', tot_iters, 
                                    '\nOuter iterations = ', outer_iters, '\n')
                              },
-                             initialize = function(cList){
+                             initialize = function(cList, tol){
                                pvec <<- cList[[1]]
                                llh <<- cList[[2]]
                                tot_iters <<- cList[[3]]
                                outer_iters <<- cList[[4]]
                                error <<- cList[[5]]
+                               conv <<- error < tol
+                               
                              }
                            ))
 
-bvCenInfo <- setRefClass('bvCenInfo',
-                         fields = c('rects', 'pvec', 'cliqOptInfo', 'llh'),
+IC_NPMLE <- setRefClass('IC_NPMLE',
+                         fields = c('p', 'rects', 'bounds', 'conv', 'llh', 'cliqOptInfo', 'isUni'),
                          methods = list(
                            show = function(){
-                             cat('Bivariate Interval Censored Optimizer Object\n')
+                             if(!isUni) cat('Bivariate Interval Censored Optimization Results\n')
+                             else       cat('Interval Censored Optimization Result\n')
                              cat('Final log likelihood = ', cliqOptInfo$llh, '\nNumeric Error = ',
                                  cliqOptInfo$error, '\nTotal iterations = ', cliqOptInfo$tot_iters, 
                                  '\nOuter iterations = ', cliqOptInfo$outer_iters, '\n')
                              cat('Number of maximal intersections = ', length(cliqOptInfo$pvec), 
                                  '\nNumber of maximal intersections w/ positive mass = ', 
-                                 length(pvec), '\n')
+                                 length(p), '\n')
                            },
-                           initialize = function(cliqInfo, rects){
+                           initialize = function(cliqInfo, inRects, isUni, B){
                              cliqOptInfo <<- cliqInfo
-                             isPos <- cliqOptInfo$pvec > 0
-                             pvec <<- cliqOptInfo$pvec[isPos]
-                             rects <<- rects[isPos,]
+                             isPos <- cliqInfo$pvec > 0
+                             p <<- cliqInfo$pvec[isPos]
+                             if(isUni){
+                               inRects <-inRects[,1:2]
+                             }
+                             isUni <<- isUni
+                             rects <<- inRects[isPos,]
                              llh <<- cliqOptInfo$llh
+                             conv <<- cliqInfo$conv
+                             bounds <<- B
                            }
                          ))

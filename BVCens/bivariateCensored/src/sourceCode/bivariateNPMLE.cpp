@@ -14,6 +14,8 @@ void bvcen::squeeze(int i, int j){
 }
 
 void bvcen::squeezeInternal(int p1_ind, int p2_ind, std::vector<int> &in1not2, std::vector<int> &in2not1){
+   
+    
     double p1 = p_mass[p1_ind];
     double p2 = p_mass[p2_ind];
     
@@ -24,6 +26,13 @@ void bvcen::squeezeInternal(int p1_ind, int p2_ind, std::vector<int> &in1not2, s
     
     int k1 = in1not2.size();
     int k2 = in2not1.size();
+    
+    if(k1 == 0 || k2 == 0){
+        Rprintf("k1 == 0 or k2 == 0\n");
+        Rprintf("p1_ind == %d, p2_ind == %d\n", p1_ind, p2_ind);
+        return;
+    }
+    
     int thisInd;
 
     double S1 = 0;
@@ -49,6 +58,7 @@ void bvcen::squeezeInternal(int p1_ind, int p2_ind, std::vector<int> &in1not2, s
     if(b2 == 2.0){b2 = 0.0;}
     S2 *= (b2 + p2);
  
+    if(S1 == 0 && S2 == 0) {return;}
     
     double new_p1 = max(0.0, min(b0, (b0 + b1 + b2) * S1/(S1 + S2) - b1 ) );
     double new_p2 = b0 - new_p1;
@@ -61,7 +71,7 @@ void bvcen::squeezeInternal(int p1_ind, int p2_ind, std::vector<int> &in1not2, s
     
     double d_p1 = new_p1 - p1;
     double d_p2 = new_p2 - p2;
-
+    
     
     for(int i = 0; i < k1; i++){
         thisInd = in1not2[i];
@@ -209,12 +219,6 @@ void bvcen::update_pobs(){
         indVec = &(pmass_in_ob[this_p_ind]);
         this_nobs = (*indVec).size();
         for(int j = 0; j < this_nobs; j++){
-            
-            if(p_obs.size() <= (*indVec)[j] ) {
-                Rprintf("problem: ind >= p_obs.size()\n");
-                break;
-            }
-            
             p_obs[ (*indVec)[j] ] += this_p;
         }
     }
@@ -261,14 +265,16 @@ void bvcen::calc_full_dp(){
     std::vector<int>* indVec;
     int this_nobs;
     int ind;
+    double this_d;
     for(int i = 0; i < n_mi; i++){
         indVec = &(pmass_in_ob[i]);
         this_nobs = (*indVec).size();
-        dp_full[i] = 0;
+        this_d = 0;
         for(int j = 0; j < this_nobs; j++){
             ind = (*indVec)[j];
-            dp_full[i] += p_obs_inv[ind];
+            this_d += p_obs_inv[ind];
         }
+        dp_full[i] = this_d;
         dp_full[i] *= inv_nobs;
     }
 }
@@ -308,7 +314,7 @@ void bvcen::vem_act(){
     int* max = new int;
     getRelValIndices(cut, dp_act, pos_pmass, posInds, negInds, max, min);
 
-    if(*min >= 0 || *max >= 0){ squeeze(*min, *max); }
+    if( (*min) >= 0 && (*max) >= 0){ squeeze(*min, *max); }
     
     delete min;
     delete max;
