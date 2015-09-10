@@ -1,8 +1,0 @@
-useDynLib(bivariateCensored)
-importFrom(MLEcens, reduc)
-export(optCliq)
-export(ICNPMLE)
-export(simBVCen)
-export(initICNPMLE)
-exportClasses(IC_NPMLE)
-exportClasses(cliqOptInfo)
