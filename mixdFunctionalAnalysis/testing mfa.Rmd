@@ -48,7 +48,7 @@ simDataList <- function(nf1 = 10,
 ```{r}
 library(splines)
 simData <- simDataList()
-algoObj <- setupProblem(simData, 5)
+algoObj <- setupProblem(simData, 3)
 
 algoObj$EM()
 algoObj$plotAllComps()

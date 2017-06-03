@@ -101,7 +101,8 @@ mfc_alg$methods(plotComp = function(j){
        xlab = "x", ylab = 'f(x)')
 })
 
-mfc_alg$methods(plotAllComps = function(plotPoints = T){
+mfc_alg$methods(plotAllComps = function(plotPoints = T, 
+                                        lgdLoc = 'top'){
   ord <- order(compInfo$pVec, decreasing = T)
   new_x <- rawFullData$x
   new_x <- sort(new_x)
@@ -111,6 +112,8 @@ mfc_alg$methods(plotAllComps = function(plotPoints = T){
   plot(rawFullData$x, rawFullData$y, col = pCol, 
        xlab = "x", ylab = 'f(x)')
   nComps <- length(compInfo$pVec)
+  lgdCol = NULL
+  lgdTxt = NULL
   for(i in seq_along(ord)){
     this_ind = ord[i]
     this_p   = compInfo$pVec[this_ind]
@@ -122,7 +125,10 @@ mfc_alg$methods(plotAllComps = function(plotPoints = T){
           col = i + 1, lty = 2)
     lines(new_x, preds - this_s, lwd = this_p * nComps * 2,
           col = i + 1, lty = 2)
+    lgdCol = c(lgdCol, i+1)
+    lgdTxt = c(lgdTxt, paste('p =', round(this_p,2), 's = ', round(this_s, 2)))
   }
+  legend(lgdLoc, lgdTxt, col = lgdCol, lwd = 2)
 })
 
 setupProblem <- function(dataList, 
