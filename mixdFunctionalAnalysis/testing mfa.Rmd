@@ -1,0 +1,55 @@
+---
+title: "Test MFA"
+author: "Clifford Anderson-Bergman"
+date: "6/2/2017"
+output: html_document
+---
+
+This script tests mixed function model. 
+
+## Loading code and test function
+
+```{r}
+source('mixedFunctionalAnalysis.R')
+
+# function to test
+simDataList <- function(nf1 = 10, 
+                        nf2 = 20, 
+                        nf3 = 10){
+  ans <- list()
+  for(i in 1:nf1){
+    obs <- rpois(1, lambda = 10) + 2
+    x <- rnorm(obs)
+    y <- x^2 + rnorm(obs)
+    this_data <- data.frame(x = x, y = y)
+    ans[[length(ans) + 1]] <- this_data
+  }
+  for(i in 1:nf2){
+    obs <- rpois(1, lambda = 10) + 2
+    x <- rnorm(obs)
+    y <- exp(x) + rnorm(obs, sd = 2)
+    this_data <- data.frame(x = x, y = y)
+    ans[[length(ans) + 1]] <- this_data
+  }
+  for(i in 1:nf3){
+    obs <- rpois(1, lambda = 10) + 2
+    x <- rnorm(obs)
+    y <- 3 * x + rnorm(obs)
+    this_data <- data.frame(x = x, y = y)
+    ans[[length(ans) + 1]] <- this_data
+  }
+  return(ans)
+}
+```
+
+
+### Test
+
+```{r}
+library(splines)
+simData <- simDataList()
+algoObj <- setupProblem(simData, 5)
+
+algoObj$EM()
+algoObj$plotAllComps()
+```
