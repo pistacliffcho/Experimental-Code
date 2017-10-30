@@ -1,0 +1,31 @@
+\documentclass[11pt]{amsart}
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+%\geometry{landscape}                % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+\title{A model for non-linear imbedding of graphical data}
+\author{Clifford Anderson-Bergman}
+%\date{}                                           % Activate to display a given date or no date
+
+\begin{document}
+\maketitle
+
+In this problem, we start with an adjacency matrix $X$. The $i,j$ entry of $X$ is 1 if node $i$ shares a directed edge with node $j$ and 0 if it does not. An undirected graph being equal to it's transpose. 
+
+We view the adjacency matrix $X$ as a random realization of a low rank non-linear model. In other words, for each node there is a position vector $Z_i = (z_{i1},..., z_{ik})$, where $z_{ij}$ represents a position and an intensity score $\eta_i$ that represents a propensity to talk with neighbors. 
+
+In the case of a undirected graph, we will model the probability of an edge between nodes $i$ and $j$ as
+
+\[
+P(X_{ij} = 1 | Z_i, Z_j) =  exp( -(Z_i, Z_j)) ^ {-\eta_i - \eta_j}
+\]
+
+where $d$ is some divergence (or distance) measure we decide\footnote{It might seem natural to just consider distance metrics, not divergence. However, I believe there maybe a reasonable argument for looking at metrics that do not follow the triangle inequality, so I'm leaving this idea open for now}. 
+
+For now, we will consider optimizing this problem using stochastic gradient descent. This will be done by sampling pairs of indices in which one pair contains an edge and the other does not. 
+\end{document}  

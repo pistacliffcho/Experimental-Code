@@ -1,0 +1,3 @@
+useDynLib(nonLinearEmbed)
+exportPattern("^[[:alpha:]]+")
+importFrom(Rcpp, evalCpp)

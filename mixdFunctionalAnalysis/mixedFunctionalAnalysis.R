@@ -73,6 +73,23 @@ mfc_alg$methods(
 )
 
 mfc_alg$methods(
+  computeLLK = function(){
+    ans = 0
+    n = length(dataList)
+    k = length(compInfo$pVec)
+    for(i in 1:n){
+      this_data = dataList[[i]]
+      this_lk_cont = 0
+      for(j in 1:k){
+        these_resids = compInfo$getResids(this_data, j)
+        l_dens       = sum(dnorm(these_resids, sd = this_s, log = T))
+        this_lk_cont = l_dens
+      }
+    }
+  }
+)
+
+mfc_alg$methods(
   Mstep = function(rndStart = F){
     k = length(compInfo$baseFxns)
     for(j in 1:k){
