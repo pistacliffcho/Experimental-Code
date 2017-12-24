@@ -1,17 +1,4 @@
 
-#include <Rcpp.h>
-#include <vector>
-using namespace Rcpp;
-
-// [[Rcpp::export]]
-List rcpp_hello_world() {
-
-    CharacterVector x = CharacterVector::create( "foo", "bar" )  ;
-    NumericVector y   = NumericVector::create( 0.0, 1.0 ) ;
-    List z            = List::create( x, y ) ;
-
-    return z ;
-}
 
 class Node{
 public:
@@ -37,17 +24,25 @@ public:
   // Calculates the log-likelihood contribution for i, j
   void calcDervs(int i, int j, bool hasEdge);
   // Calculates derivatives with respect to node i ONLY
+
+  void calcDervs(int i, int j, bool hasEdge, double w);
+  // Calculates derivatives with respect to node i ONLY
   
-  void sgdUpdate(int i, int j, double alpha, double w, 
-                 bool hasEdge);
+  void sgdUpdate(int i, int j, double alpha, double w, bool hasEdge);
   // Does a single SGD update *only on node i*
+  
+  void adamUpdate(int i, int j, double alpha, double w, bool hasEdge);
+  // Does a single adam update *only on node i*
   
   std::vector<double> derv;
   // Vector for storing derivatives 
   
+  std::vector<Adam*> adamList;
+  
   Embedder(Rcpp::NumericMatrix coords, 
            Rcpp::NumericVector eta, 
            double h);
+  ~Embedder();
 };
 
 // For now, we will just look at Euclidean Distance 
@@ -111,6 +106,11 @@ void Embedder::calcDervs(int i, int j, bool hasEdge){
   derv[k] = (llk_h - llk_l) / (2.0 * h);
 }
 
+void Embedder::calcDervs(int i, int j, bool hasEdge, double w){
+	calcDervs(i,j, hasEdge);
+	for(int ii = 0; ii <= k; ii++) derv[ii] *= w;
+}
+
 // Returns the min(absolute(x, abs_rng)) * sign
 double ab_thresh(double x, double abs_rng){
   if(x < 0){
@@ -139,21 +139,44 @@ void Embedder::sgdUpdate(int i, int j, double alpha,
   ni->eta += update;
 }
 
+void Embedder::adamUpdate(int i, int j, double alpha, 
+                         double w, bool hasEdge){
+  calcDervs(i, j, hasEdge, w);
+  Node* ni = &nodes[i];
+  Adam* this_adam = adamList[i];
+  this_adam->calc_update(alpha, &derv[0]);
+  std::vector<double> delta = this_adam->getDelta();
+  for(int ii = 0; ii < k; ii++){ ni->coord[ii] -= delta[ii]; }
+  // Subtracting delta because we are using LLK, not negative LLK
+  ni->eta -= delta[k];
+}
+
+
 
 Embedder::Embedder(Rcpp::NumericMatrix R_coords, 
                    Rcpp::NumericVector R_eta, 
                    double R_h){
   n = R_eta.size();
   k = R_coords.size()/n;
+  int numAdamPars = k + 1;
   nodes.resize(n);
+  adamList.resize(n);
   for(int i = 0; i < n; i++){
     nodes[i].eta = R_eta[i];
     nodes[i].coord.resize(k);
     for(int j = 0; j < k; j++){
       nodes[i].coord[j] = R_coords(i,j);
     }
+    adamList[i] = new Adam(numAdamPars);
   }
   h = R_h;
+}
+
+Embedder::~Embedder(){
+	int nAdams = adamList.size();
+	for(int i = 0; i < nAdams; i++){
+		delete adamList[i];
+	}
 }
 
 // [[Rcpp::export]]
@@ -200,6 +223,46 @@ List sgd_updates(Rcpp::NumericVector is,
     updater.sgdUpdate(is[i] - 1, js[i] - 1, alphas[i], 
                       ws[i], c_hasEdge);
     updater.sgdUpdate(js[i] - 1, is[i] - 1, alphas[i], 
+                      ws[i], c_hasEdge);
+    
+  }
+  int n = etas.size();
+  int k = coord.size()/n;
+  
+  Rcpp::NumericMatrix coord_out(n,k);
+  Rcpp::NumericVector etas_out(n);
+  for(int i = 0; i < n; i++){
+    etas_out[i] = updater.nodes[i].eta;
+    for(int j = 0; j < k; j++){
+      coord_out(i,j) = updater.nodes[i].coord[j];
+    }
+  }
+  Rcpp::List ans = Rcpp::List::create(coord_out, etas_out);
+  return(ans);
+}
+
+
+// [[Rcpp::export]]
+List adam_updates(Rcpp::NumericVector is, 
+                 Rcpp::NumericVector js,
+                 Rcpp::LogicalVector hasEdges,
+                 Rcpp::NumericVector ws, 
+                 Rcpp::NumericVector alphas,
+                 Rcpp::NumericMatrix coord, 
+                 Rcpp::NumericVector etas, 
+            double h){
+  unsigned int n_updates = is.size();
+  if(n_updates != js.size()){ Rcpp::stop("n_updates != js.size"); }
+  if(n_updates != hasEdges.size()){ Rcpp::stop("n_updates != hasEdges.size"); }
+  if(n_updates != ws.size()){ Rcpp::stop("n_updates != ws.size");}
+  if(n_updates != alphas.size()){Rcpp::stop("n_updates != alpha.size");}
+  
+  Embedder updater(coord, etas, h);
+  for(int i = 0; i < n_updates; i++){
+    bool c_hasEdge = hasEdges[i] == TRUE;
+    updater.adamUpdate(is[i] - 1, js[i] - 1, alphas[i], 
+                      ws[i], c_hasEdge);
+    updater.adamUpdate(js[i] - 1, is[i] - 1, alphas[i], 
                       ws[i], c_hasEdge);
     
   }

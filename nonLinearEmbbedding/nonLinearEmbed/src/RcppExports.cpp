@@ -5,16 +5,6 @@
 
 using namespace Rcpp;
 
-// rcpp_hello_world
-List rcpp_hello_world();
-RcppExport SEXP _nonLinearEmbed_rcpp_hello_world() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(rcpp_hello_world());
-    return rcpp_result_gen;
-END_RCPP
-}
 // estLLK
 double estLLK(Rcpp::NumericVector is, Rcpp::NumericVector js, Rcpp::LogicalVector hasEdges, Rcpp::NumericVector ws, Rcpp::NumericMatrix coord, Rcpp::NumericVector etas);
 RcppExport SEXP _nonLinearEmbed_estLLK(SEXP isSEXP, SEXP jsSEXP, SEXP hasEdgesSEXP, SEXP wsSEXP, SEXP coordSEXP, SEXP etasSEXP) {
@@ -49,11 +39,29 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// adam_updates
+List adam_updates(Rcpp::NumericVector is, Rcpp::NumericVector js, Rcpp::LogicalVector hasEdges, Rcpp::NumericVector ws, Rcpp::NumericVector alphas, Rcpp::NumericMatrix coord, Rcpp::NumericVector etas, double h);
+RcppExport SEXP _nonLinearEmbed_adam_updates(SEXP isSEXP, SEXP jsSEXP, SEXP hasEdgesSEXP, SEXP wsSEXP, SEXP alphasSEXP, SEXP coordSEXP, SEXP etasSEXP, SEXP hSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type is(isSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type js(jsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::LogicalVector >::type hasEdges(hasEdgesSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type ws(wsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type alphas(alphasSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type coord(coordSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type etas(etasSEXP);
+    Rcpp::traits::input_parameter< double >::type h(hSEXP);
+    rcpp_result_gen = Rcpp::wrap(adam_updates(is, js, hasEdges, ws, alphas, coord, etas, h));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_nonLinearEmbed_rcpp_hello_world", (DL_FUNC) &_nonLinearEmbed_rcpp_hello_world, 0},
     {"_nonLinearEmbed_estLLK", (DL_FUNC) &_nonLinearEmbed_estLLK, 6},
     {"_nonLinearEmbed_sgd_updates", (DL_FUNC) &_nonLinearEmbed_sgd_updates, 8},
+    {"_nonLinearEmbed_adam_updates", (DL_FUNC) &_nonLinearEmbed_adam_updates, 8},
     {NULL, NULL, 0}
 };
 
