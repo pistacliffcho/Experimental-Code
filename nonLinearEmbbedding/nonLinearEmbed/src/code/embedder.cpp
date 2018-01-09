@@ -50,14 +50,12 @@ double Embedder::calcDiv(int i, int j){
   double ans = 0;
   Node* n_i = &nodes[i];
   Node* n_j = &nodes[j];
-  double sqr_diff, xi, xj;
+  double xi, xj;
   for(int ii = 0; ii < k; ii++){
     xi = n_i->coord[ii];
     xj = n_j->coord[ii];
-    sqr_diff = (xi-xj) * (xi-xj);
-    ans += sqr_diff;
+    ans += std::abs(xi-xj);
   }
-  ans = sqrt(ans);
   return(ans);
 }
 
@@ -76,11 +74,7 @@ double Embedder::calcLLKcont(int i, int j, bool hasEdge){
   double prob = calcEdgeProb(i,j);
   double ans;
   if(hasEdge){ ans = log(prob); }
-  else { ans = log(1.0-prob);}
-  
-//  double div = calcDiv(i,j);
-//  ans -= div;
-  
+  else { ans = log(1.0-prob);}  
   return(ans);
 }
 
@@ -88,7 +82,6 @@ double Embedder::calcLLKcont(int i, int j, bool hasEdge){
 void Embedder::calcDervs(int i, int j, bool hasEdge){
   derv.resize(k + 1);
   Node* n_i = &nodes[i];
-
   double llk_h, llk_l;
   for(int ii = 0; ii < k; ii++){
     n_i->coord[ii] += h;
@@ -97,7 +90,7 @@ void Embedder::calcDervs(int i, int j, bool hasEdge){
     llk_l = calcLLKcont(i,j, hasEdge);
     derv[ii] = (llk_h - llk_l) / (2.0 * h);
     n_i->coord[ii] += h;
-  }
+  }  
   n_i->eta += h;
   llk_h = calcLLKcont(i,j, hasEdge);
   n_i->eta -= 2.0 * h;
@@ -108,7 +101,7 @@ void Embedder::calcDervs(int i, int j, bool hasEdge){
 
 void Embedder::calcDervs(int i, int j, bool hasEdge, double w){
 	calcDervs(i,j, hasEdge);
-	for(int ii = 0; ii <= k; ii++) derv[ii] *= w;
+	for(int ii = 0; ii <(k+1); ii++) derv[ii] *= w;
 }
 
 // Returns the min(absolute(x, abs_rng)) * sign

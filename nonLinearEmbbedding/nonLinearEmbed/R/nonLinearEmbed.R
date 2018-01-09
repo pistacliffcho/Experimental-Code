@@ -21,9 +21,7 @@ adam_update <- function(nPairs = 1000,
 
 
 
-estEmbedLLK <- function(nPairs = 1000, embedder){
-  embedder$est_llk(nPairs)
-}
+estEmbedLLK <- function(nPairs = 1000, embedder){ embedder$est_llk(nPairs) }
 
 makeEmbed <- function(edgeList, k){NLEmbed(edgeList, k)}
 
@@ -33,7 +31,7 @@ plot2d <- function(embedder,
   coords <- embedder$coords
   etas = embedder$etas
   etas <- (etas - min(etas)) / (range(etas)[2] - range(etas)[1]) 
-  itemSizes = exp(etas-0.5)
+  itemSizes = expit(etas-0.5)
   itemSize = etas
   plot(coords, 
        xlab = "C1", ylab = 'C2',
@@ -60,6 +58,8 @@ updateAndCheck <- function(nUpdates,
                            embedder, updater = adam_update){
   start_llk = embedder$last_llk
   start_coords = embedder$coords
+  start_etas = embedder$etas
+  
   updater(nUpdates, 
              alpha_start = alpha_start, 
              alpha_finish = alpha_finish, 
@@ -77,6 +77,7 @@ updateAndCheck <- function(nUpdates,
       cat("Estimated Loglikelihood not improved. Reverting to previous estimates\n")
       embedder$coords <- start_coords
       embedder$last_llk <- start_llk
+      embedder$etas <- start_etas
   }
   else{
    cat("Improvement in estimated average loglikelihood = ", new_llk - start_llk, '\n')

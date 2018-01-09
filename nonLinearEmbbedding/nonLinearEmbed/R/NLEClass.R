@@ -96,6 +96,14 @@ NLEmbed$methods(randCoords = function(sd = 0.1){
   coords <<- matrix(rnorm(n * rank, sd = sd), 
                     nrow = n)
   etas <<- rnorm(n, sd = sd)
+  # temp_etas = rep(0, n)
+  # for(i in 1:n){
+  #   margEdgeProb = mean(edgeList == i)
+  #   temp_etas[i] = logit(margEdgeProb)
+  # }
+  # flat_edges <- sort(as.numeric(as.matrix(edgeList)))
+  # marg_edge_prob <- as.numeric(table(flat_edges)) / (n^2 - n)
+  # etas <<- logit( marg_edge_prob )
 })
 
 
@@ -112,3 +120,6 @@ NLEmbed$methods(
     randCoords()
     last_llk <<- -Inf
   })
+
+logit = function(x) log(x / (1 - x))
+expit = function(x) exp(x)/(1 + exp(x))

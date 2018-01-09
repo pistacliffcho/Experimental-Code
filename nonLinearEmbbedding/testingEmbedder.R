@@ -31,7 +31,7 @@ sbm_data <- makeSBM(pin = .5, pout = 0.05,
 n_nodes <- max(sbm_data$edgeList)
 embed <- makeEmbed(sbm_data$edgeList, 2)
 
-n_updates <- round(n_nodes * log(n_nodes)  * 500)
+n_updates <- round(n_nodes * log(n_nodes)  * 50)
 updateAndCheck(n_updates, 1, .1, embed, sgd_update)
 updateAndCheck(n_updates, 0.1, .001, embed, sgd_update)
 plot2d(embed, col = sbm_data$block_id)
@@ -41,3 +41,17 @@ updateAndCheck(n_updates, .1, .01, embed, adam_update)
 updateAndCheck(n_updates, 0.001, .0001, embed, adam_update)
 plot2d(embed, col = sbm_data$block_id)
 
+
+library(plotly)
+library(nonLinearEmbed)
+
+setwd("~/Desktop/graphs/ca-AstroPh")
+astroEL <- read.table("ca-AstroPh.mtx", 
+                      skip = 2)
+n_nodes <- max(astroEL)
+n_updates <- round(n_nodes * log(n_nodes)  * 10)
+
+embed <- makeEmbed(astroEL, 2)
+updateAndCheck(n_updates, .2, .1, embed, adam_update)
+updateAndCheck(n_updates, 0.01, .0001, embed, adam_update)
+plot2d(embed)
