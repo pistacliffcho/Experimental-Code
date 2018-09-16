@@ -1,0 +1,64 @@
+double mono_dmvnorm_one(Rcpp::NumericVector x, int n_miss,
+                        Rcpp::NumericVector mu,
+                        Rcpp::NumericMatrix LL_invChol_S){
+  // Checking dimensions
+  int x_sz = x.size();
+  int mu_sz = mu.size();
+  int chol_row = LL_invChol_S.rows();
+  int chol_col = LL_invChol_S.cols();
+  checkSizes(x_sz, mu_sz,"x.size != mu.size\n");
+  checkSizes(x_sz, chol_row, "x.size != chol.row\n");
+  checkSizes(x_sz, chol_col, "x_sz != chol.col\n");
+  if(n_miss > x_sz || n_miss < 0){ 
+    Rcpp::stop("Invalid n_missing value\n");
+  }
+  
+  // Computing determinant + residuals
+  int num_obs = mu_sz - n_miss;
+  Rcpp::NumericVector res(num_obs);
+  double log_cholS_det = 0.0;
+  double dbl_n_obs = num_obs;
+  int this_ind;
+  for(int i = 0; i < num_obs; i++){
+    this_ind = i + n_miss;
+    res[i] = x[this_ind] - mu[this_ind];
+    log_cholS_det += log(LL_invChol_S(this_ind, this_ind));
+  }
+  // Computing first part of log probability
+  double part_1 = -0.5 * log(2.0 * M_PI) * dbl_n_obs + log_cholS_det;
+  // Computing t(res) %*% solve(\sigma) %*% res 
+  // and adding to first part
+  double this_cont;
+  double ans = part_1;
+  for(int j = 0; j < num_obs; j++){
+    this_cont = 0.0;
+    for(int i = j; i < num_obs; i++){
+      this_cont += res[i] * LL_invChol_S(i + n_miss, j + n_miss);
+    }
+    ans -= this_cont * this_cont/2.0;
+  }
+  return(ans);
+}
+
+
+Rcpp::NumericVector 
+mono_dmvnorm(Rcpp::NumericMatrix x, 
+             Rcpp::IntegerVector n_miss,
+             Rcpp::NumericVector mu,
+             Rcpp::NumericMatrix invChol_S){
+  int nRow = x.rows();
+  int n_miss_count = n_miss.size();
+  if(nRow != n_miss_count){
+    Rcpp::stop("nRow");
+  }
+  Rcpp::NumericVector ans(nRow);
+  Rcpp::NumericVector this_row;
+  int n_miss_row;
+  for(int i = 0; i < nRow; i++){
+    this_row = x.row(i);
+    n_miss_row = n_miss[i];
+    ans[i] = mono_dmvnorm_one(this_row, n_miss_row, 
+                              mu, invChol_S);
+  }
+  return(ans);
+}

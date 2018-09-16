@@ -1,0 +1,245 @@
+Rcpp::List sum_y_k_one(Rcpp::NumericMatrix data, 
+                       int miss_k, 
+                       Rcpp::NumericVector ws){
+  int nCol = data.cols();
+  int nRow = data.rows();
+  int ws_sz = ws.size();
+  checkSizes(nRow, ws_sz, "nRow != ws.size\n");
+  
+  Rcpp::NumericVector y_k(nCol);
+  Rcpp::NumericVector w_tot(1);
+  
+  for(int i = 0; i < nCol; i++){ y_k[i] = 0.0; }
+  
+  double this_w;
+  for(int i = 0; i < nRow; i++){
+    this_w = ws[i];
+    w_tot[0] += this_w;
+    for(int j = 0; j < nCol; j++){
+      y_k[j] += data(i,j) * this_w;
+    }
+  }
+  Rcpp::List ans;
+  ans["y_sum"] = y_k;
+  ans["w_sum"] = w_tot;
+  return(ans);
+}
+
+
+Rcpp::List mat2List(const Rcpp::NumericMatrix y_k_mat, 
+                    const Rcpp::IntegerVector n_missing){
+  // Checking sizes
+  int k = n_missing.size();
+  int nRow = y_k_mat.rows();
+  checkSizes(k, nRow, "k != nRow");
+  
+  int nCol = y_k_mat.cols();
+  Rcpp::List ans(k);
+  
+  int this_miss, vec_size;
+  for(int i = 0; i < k; i++){
+    this_miss = n_missing[i];
+    vec_size = nCol - this_miss;
+    Rcpp::NumericVector this_row(vec_size);
+    for(int ii = 0; ii < vec_size; ii++){
+      this_row[ii] = y_k_mat(i, ii + this_miss);
+    }
+    ans[i] = this_row;
+  }
+  return(ans);
+}
+
+
+Rcpp::List make_yk_wk(Rcpp::List dataList, 
+                      Rcpp::List wList, 
+                      Rcpp::IntegerVector n_missing){
+  int n_miss_patterns = n_missing.size();
+  
+  int dataList_sz = dataList.size();
+  int wList_sz = wList.size();
+  checkSizes(n_miss_patterns, dataList_sz, "n_missing.size != dataList.size\n");
+  checkSizes(n_miss_patterns, wList_sz, "n_missing.size != wList.size\n");
+  
+  Rcpp::NumericVector row_w(n_miss_patterns);
+  Rcpp::NumericMatrix this_data = dataList[0];
+  Rcpp::NumericVector this_w = wList[0];
+  
+  int k = this_data.ncol();
+  Rcpp::NumericMatrix y_k_mat(n_miss_patterns, k);
+  int this_miss = n_missing[0];
+  
+  Rcpp::List this_row_info = sum_y_k_one(this_data, this_miss, this_w);
+  Rcpp::NumericVector this_row_vals = this_row_info["y_sum"];
+  Rcpp::NumericVector this_w_tot = this_row_info["w_sum"];
+  
+  row_w[0] = this_w_tot[0];
+  for(int i = 0; i < k; i++){
+    y_k_mat(0,i) = this_row_vals[i];
+  }
+  
+  for(int i = 1; i < n_miss_patterns; i++){
+    Rcpp::NumericMatrix this_data = dataList[i];
+    this_miss = n_missing[i];
+    this_w = wList[i];
+    this_row_info = sum_y_k_one(this_data, this_miss, this_w);
+    this_row_vals = this_row_info["y_sum"];
+    this_w_tot = this_row_info["w_sum"];
+    for(int ii = this_miss; ii < k; ii++){
+      y_k_mat(i,ii) = this_row_vals[ii - this_miss] + y_k_mat(i-1, ii);
+    }
+    row_w[i] = row_w[i-1] + this_w_tot[0];
+  }
+  
+  for(int i = 0;  i < n_miss_patterns; i++){
+    for(int ii = 0; ii < k; ii++){
+      y_k_mat(i,ii) /= row_w[i];
+    }
+  }
+  Rcpp::List y_k_list = mat2List(y_k_mat, n_missing);
+  Rcpp::List ans;
+  ans["y_k_list"] = y_k_list;
+  ans["cum_w"] = row_w;
+  return(ans);
+}
+
+Rcpp::NumericMatrix w_ss(Rcpp::NumericMatrix data, 
+                         Rcpp::NumericVector ws){
+  // Checking dimensions
+  int nRow = data.rows();
+  int ws_size = ws.size();
+  checkSizes(nRow, ws_size, "nRow != ws_size");
+  
+  int nCol = data.cols();
+  Rcpp::NumericMatrix ans(nCol, nCol);
+  double this_w, this_c1;
+  for(int i = 0; i < nRow; i++){
+    this_w = ws[i];
+    for(int c1 = 0; c1 < nCol; c1++){
+      this_c1 = data(i, c1);
+      for(int c2 = 0; c2 < nCol; c2++){
+        ans(c1, c2) += this_c1 * data(i, c2) * this_w;
+      }
+    }
+  }
+  return(ans);
+}
+
+void addLastMatrix(const Rcpp::NumericMatrix lastMat, 
+                   Rcpp::NumericMatrix newMat,
+                   int last_miss, int new_miss){
+  // Extracting dimensions
+  int last_rows = lastMat.rows();
+  int tot_rows = last_rows + last_miss;
+  int new_rows = tot_rows - new_miss;
+  int diff_rows = new_miss - last_miss;
+  if(last_rows <= new_rows){ Rcpp::stop("last_rows <= new_rows");}
+  
+  int last_row, last_col;
+  for(int i = 0; i < new_rows; i++){
+    last_row = i + diff_rows;
+    for(int j = 0; j < new_rows; j++){
+      last_col = j + diff_rows;
+      newMat(i,j) += lastMat(last_row, last_col);
+    }
+  }
+}
+
+
+Rcpp::NumericMatrix 
+  std_sk_star(const Rcpp::NumericMatrix sk_star,
+              const Rcpp::NumericVector y_k, 
+              double wk){
+    
+    // Safety checks
+    int y_k_sz = y_k.size();
+    int sk_row = sk_star.rows();
+    int sk_col = sk_star.cols();
+    if(y_k_sz < sk_row){ Rcpp::stop("y_k_sz < sk_row\n"); }
+    if(sk_row != sk_col){ Rcpp::stop("sk_star not square"); }
+    
+    // Making new matrix
+    Rcpp::NumericMatrix ans(sk_row, sk_row);
+    double yk_row;
+    for(int i = 0; i < sk_row; i++){
+      yk_row = y_k[i];
+      for(int j = 0; j < sk_row; j++){
+        ans(i,j) = sk_star(i,j) / wk - yk_row * y_k[j];
+      }
+    }
+    
+    return(ans);
+  }
+
+
+Rcpp::List make_Sk(Rcpp::List dataList, 
+                   Rcpp::IntegerVector missing_ns, 
+                   Rcpp::List y_k_res, 
+                   Rcpp::List wList){
+  
+  // Extracting y_k_res items
+  Rcpp::List y_k_list = y_k_res["y_k_list"];
+  Rcpp::NumericVector w_tots = y_k_res["cum_w"];
+  
+  // Extracting info for first S_k
+  Rcpp::NumericMatrix this_data = dataList[0];
+  int this_miss = missing_ns[0];
+  Rcpp::NumericVector ws = wList[0];
+  
+  // Output
+  int ans_size = dataList.size();
+  Rcpp::List ans(ans_size);
+  
+  // Making S_0 outside of loop
+  Rcpp::NumericMatrix raw_sums = 
+    w_ss(this_data, ws);
+  Rcpp::NumericVector y_k = y_k_list[0];
+  double w_k = w_tots[0];
+  
+  Rcpp::NumericMatrix std_S = std_sk_star(raw_sums, y_k, w_k);
+  
+  ans[0] = std_S;
+  
+  
+  // Making S[1:(k-1)] in loop  
+  int n_loops = w_tots.length();
+  Rcpp::NumericMatrix old_raw_sums = mat_copy(raw_sums);
+  int last_miss = this_miss;
+  // Skipping i = 0 because that was done above
+  for(int i = 1; i < n_loops; i++){
+    Rcpp::NumericMatrix this_data = dataList[i];
+    this_miss = missing_ns[i];
+    ws = wList[i];
+    raw_sums = w_ss(this_data, ws);
+    
+    addLastMatrix(old_raw_sums, raw_sums, last_miss, this_miss);
+    
+    y_k = y_k_list[i];
+    w_k = w_tots[i];
+    std_S = std_sk_star(raw_sums, y_k, w_k);
+    
+    ans[i] = std_S;
+    old_raw_sums = mat_copy(raw_sums);
+    last_miss = this_miss;
+  }
+  return(ans);
+}
+
+
+Rcpp::NumericMatrix row_mult(Rcpp::NumericMatrix mat, 
+                             Rcpp::NumericVector vec){
+  int nCol = mat.cols();
+  int nRow = mat.rows();
+  int vec_size = vec.size();
+  checkSizes(nCol, vec_size, "nCol != vec_size");
+  
+  Rcpp::NumericMatrix ans(nRow, nCol);
+  
+  double vec_val;
+  for(int j = 0; j < nCol; j++){
+    vec_val = vec[j];
+    for(int i = 0; i < nRow; i++){
+      ans(i,j) = mat(i, j) * vec_val;
+    }
+  }
+  return(ans);
+}

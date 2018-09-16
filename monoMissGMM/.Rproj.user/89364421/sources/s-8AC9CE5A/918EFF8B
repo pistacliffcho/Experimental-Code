@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1536331440358.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "918EFF8B",
+    "lastKnownWriteTime" : 1536366963,
+    "last_content_update" : 1536366963230,
+    "path" : "~/Desktop/monoMissGMM/R/EM.R",
+    "project_path" : "R/EM.R",
+    "properties" : {
+        "cursorPosition" : "99,42",
+        "scrollLine" : "91",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

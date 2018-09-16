@@ -1,0 +1,94 @@
+library(gmmMonoMiss)
+library(mvtnorm)
+
+
+X = matrix(rnorm(12), ncol = 3)
+S = t(X) %*% X / nrow(X)
+mu = rnorm(ncol(X))
+
+invChol_S = t(chol(solve(S)) )
+
+dmvnorm(X[1,], mu, S, log = T)
+mono_dmvnorm_one(X[1,], 0, mu, invChol_S)
+
+dmvnorm(X[1,-1], mu[-1], S[-1,-1], log = T)
+mono_dmvnorm_one(X[1,], 1, mu, invChol_S)
+
+n = 200
+data = data.frame(w = c(rnorm(n), rnorm(n, sd = 4)),
+                  x = c(rnorm(n), rnorm(n, sd = 4)), 
+                  y = c(rnorm(n), rnorm(n, sd = 4)), 
+                  z = c(rnorm(n), rnorm(n, sd = 4)))
+data[1:2,1] = NA
+data[2, 2:3] = NA
+data
+
+split_info = makeDataList(data, cum = F)
+split_data = split_info$split_data
+n_missings = get_split_patterns(split_data)
+
+w_vec = runif(nrow(data))
+
+split_weights = split(w_vec, split_info$missing_vec)
+
+k_info = yS_k(split_data, split_weights)
+chol_list = sk_chols(k_info$S_k)
+H = compute_h(chol_list)
+
+mu_hat = compute_muHat(H, k_info$y_k, n_missings)
+
+mle_res = compute_mle(split_data, split_weights, n_missings)
+mle_res
+
+missing_cnts = as.integer( rowSums(is.na(data)) )
+mu = mle_res$mu
+chol_S = mle_res$chol
+mu
+chol_S
+S = solve( chol_S %*% t(chol_S) )
+cholS_inv = chol(solve(S))
+
+log_d = mono_dmvnorm(as.matrix(data), missing_cnts, mu, chol_S )
+llk = sum(log_d * w_vec)
+
+log_d = mono_dmvnorm(as.matrix(data), missing_cnts, mu + 0.01, chol_S) 
+llk_muh = sum(log_d * w_vec)
+
+log_d = mono_dmvnorm(as.matrix(data), missing_cnts, mu - 0.01, chol_S) 
+llk_mul = sum(log_d * w_vec)
+
+log_d = mono_dmvnorm(as.matrix(data), missing_cnts, mu, chol_S + 0.001)
+llk_chh = sum(log_d * w_vec)
+
+log_d = mono_dmvnorm(as.matrix(data), missing_cnts, mu, chol_S - 0.001)
+llk_chl = sum(log_d * w_vec)
+
+
+llk_vec = c(llk, llk_muh, llk_mul, llk_chh, llk_chl)
+llk_vec
+
+
+
+## Testing EM
+EM = make_gmmMonoEM(data, w = w_vec, k = 10)
+#EM$update_chol()
+EM$M_step()
+EM$E_step()
+EM$llk()
+
+
+
+## Testing rank 1 cholesky updates
+X1 = matrix(rnorm(12), nrow = 4)
+X2 = matrix(rnorm(6), nrow = 2)
+
+S1 = t(X1) %*% X1
+C1 = t( chol(S1) )
+
+S2 = S1 + t(X2) %*% X2
+C2 = t( chol(S2) )
+
+myC2 = gmmMonoMiss:::chol_lowRankUpdate(X2, C1, rep(1, 2))
+
+C2
+myC2

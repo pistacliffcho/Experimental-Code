@@ -1,0 +1,113 @@
+gmmMonoEM = setRefClass("gmmMonoEM", 
+                        fields = c("data", "split_data", 
+                                   "miss_vec", "n_missings",
+                                   "raw_weights", 
+                                   "comp_probs", "obs_dens", "obs_probs", 
+                                   "k", "nRow", "nCol", "comp_pars", 
+                                   "alter_chol"))
+
+gmmMonoEM$methods(
+  compute_comp_mle = function(comp_i){
+    this_w = raw_weights * obs_probs[,comp_i]
+    this_w_list = split(this_w, miss_vec)
+    this_mle = compute_mle(split_data, this_w_list, n_missings)
+    comp_pars[[comp_i]] <<- this_mle
+  }
+)
+
+gmmMonoEM$methods(
+  compute_comp_dens = function(comp_i){
+    this_comp_pars = comp_pars[[comp_i]]
+    mu = this_comp_pars$mu
+    chol = this_comp_pars$chol
+    log_dens = mono_dmvnorm(data, miss_vec, mu, chol)
+    obs_dens[,comp_i] <<- exp(log_dens)
+  }
+)
+
+gmmMonoEM$methods(
+  row_dens2probs = function(){
+    rescale_dens = row_mult(obs_dens, comp_probs)
+    rescale_dens = col_mult(rescale_dens, 1 / rowSums(rescale_dens) )
+    obs_probs <<- rescale_dens
+  }
+)
+
+gmmMonoEM$methods(
+  update_p = function(){
+    p_vec = numeric(k)
+    for(i in 1:k){
+      p_vec[i] = sum( obs_probs[,i] * raw_weights / sum(raw_weights) )
+    }
+    comp_probs <<- p_vec
+  }
+)
+
+gmmMonoEM$methods(
+  llk = function(){
+    probs = rowSums(row_mult(obs_dens, comp_probs) )
+    ans = sum(raw_weights * log(probs))
+    return(ans)
+  }
+)
+
+gmmMonoEM$methods(
+  E_step = function(){
+    for(i in 1:k){ compute_comp_dens(i) }
+    row_dens2probs()
+    update_p()
+  }
+)
+
+gmmMonoEM$methods(
+  M_step = function(){
+    for(i in 1:k){ compute_comp_mle(i) }
+  }
+)
+
+gmmMonoEM$methods(
+  update_chol = function(){
+    for(i in seq_along(comp_pars)){
+      this_chol = comp_pars[[i]]$chol
+      this_chol = alter_chol(this_chol)
+      comp_pars[[i]]$chol <<- this_chol
+    }
+  }
+)
+
+make_init_obs_probs = function(data, k){
+  nRow = nrow(data)
+  ans = matrix(runif(nRow * k), nrow = nRow, ncol = k)
+  ans = ans/rowSums(ans)
+  return(ans)
+}
+
+alt_chol = function(chol_mat){
+  invChol = solve(chol_mat)
+  diag(invChol) = diag(invChol) + 0.01
+  chol_mat = solve(invChol)
+  return(chol_mat)
+}
+
+make_gmmMonoEM = function(data, k = 2, w = NULL, 
+                          alter_chol = alt_chol){
+  ans = gmmMonoEM()
+  ans$alter_chol = alter_chol
+  ans$data = as.matrix(data)
+  split_data_info = makeDataList(data, cum = F)
+  ans$split_data = split_data_info$split_data
+  ans$n_missings = get_split_patterns(ans$split_data)
+  ans$miss_vec = split_data_info$missing_vec
+  ans$k = k
+  ans$obs_probs = make_init_obs_probs(data, k)
+  ans$obs_dens = ans$obs_probs + NA
+  ans$nRow = nrow(data)
+  ans$nCol = ncol(data)
+  ans$comp_pars = list()
+  if(is.null(w)){ w = rep(1, ans$nRow) }
+  ans$raw_weights = w
+  
+  ans$update_p()
+  
+  return(ans)
+}

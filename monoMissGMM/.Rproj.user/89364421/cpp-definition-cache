@@ -1,0 +1,251 @@
+[
+    {
+        "definitions" : [
+            {
+                "column" : 15,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 13,
+                "name" : "getOmega_r(List, int)",
+                "parent_name" : "",
+                "usr" : "c:@F@getOmega_r#$@N@Rcpp@C@Vector>#VI19#@N@Rcpp@CT>1#T@PreserveStorage#I#"
+            },
+            {
+                "column" : 8,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 18,
+                "name" : "sum_w(List, int, arma::vec)",
+                "parent_name" : "",
+                "usr" : "c:@F@sum_w#$@N@Rcpp@C@Vector>#VI19#@N@Rcpp@CT>1#T@PreserveStorage#I#$@N@arma@C@Col>#d#"
+            },
+            {
+                "column" : 15,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 30,
+                "name" : "getRow(arma::mat &, int)",
+                "parent_name" : "",
+                "usr" : "c:@F@getRow#&$@N@arma@C@Mat>#d#I#"
+            },
+            {
+                "column" : 5,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 39,
+                "name" : "getReducSize(NumericMatrix, int)",
+                "parent_name" : "",
+                "usr" : "c:@F@getReducSize#$@N@Rcpp@C@Matrix>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#I#"
+            },
+            {
+                "column" : 15,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 46,
+                "name" : "sum_yw(NumericMatrix, List, int, NumericVector)",
+                "parent_name" : "",
+                "usr" : "c:@F@sum_yw#$@N@Rcpp@C@Matrix>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#$@N@Rcpp@C@Vector>#VI19#@N@Rcpp@CT>1#T@PreserveStorage#I#$@N@Rcpp@C@Vector>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#"
+            },
+            {
+                "column" : 15,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 68,
+                "name" : "trim_vec(NumericVector)",
+                "parent_name" : "",
+                "usr" : "c:@F@trim_vec#$@N@Rcpp@C@Vector>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#"
+            },
+            {
+                "column" : 6,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 78,
+                "name" : "compute_y_r(NumericMatrix, List, NumericVector)",
+                "parent_name" : "",
+                "usr" : "c:@F@compute_y_r#$@N@Rcpp@C@Matrix>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#$@N@Rcpp@C@Vector>#VI19#@N@Rcpp@CT>1#T@PreserveStorage#$@N@Rcpp@C@Vector>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#"
+            },
+            {
+                "column" : 21,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 95,
+                "name" : "mat_copy(Rcpp::NumericMatrix)",
+                "parent_name" : "",
+                "usr" : "c:@F@mat_copy#$@N@Rcpp@C@Matrix>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#"
+            },
+            {
+                "column" : 6,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 108,
+                "name" : "chol_rank1Update(Rcpp::NumericVector &, arma::mat &, double, bool)",
+                "parent_name" : "",
+                "usr" : "c:@F@chol_rank1Update#&$@N@Rcpp@C@Vector>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#&$@N@arma@C@Mat>#d#d#b#"
+            },
+            {
+                "column" : 11,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 140,
+                "name" : "chol_lowRankUpdate(const Rcpp::NumericMatrix, const arma::mat &, const Rcpp::NumericVector, bool)",
+                "parent_name" : "",
+                "usr" : "c:@F@chol_lowRankUpdate#1$@N@Rcpp@C@Matrix>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#&1$@N@arma@C@Mat>#d#1$@N@Rcpp@C@Vector>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#b#"
+            },
+            {
+                "column" : 6,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 162,
+                "name" : "add_weighted_outer_prod(NumericVector, arma::mat &, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@add_weighted_outer_prod#$@N@Rcpp@C@Vector>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#&$@N@arma@C@Mat>#d#d#"
+            },
+            {
+                "column" : 11,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 179,
+                "name" : "clone(arma::mat &)",
+                "parent_name" : "",
+                "usr" : "c:@F@clone#&$@N@arma@C@Mat>#d#"
+            },
+            {
+                "column" : 11,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 191,
+                "name" : "trim_mat(arma::mat &)",
+                "parent_name" : "",
+                "usr" : "c:@F@trim_mat#&$@N@arma@C@Mat>#d#"
+            },
+            {
+                "column" : 6,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 202,
+                "name" : "prep_chol_temp(arma::mat &, NumericVector, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@prep_chol_temp#&$@N@arma@C@Mat>#d#$@N@Rcpp@C@Vector>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#d#"
+            },
+            {
+                "column" : 6,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 207,
+                "name" : "update_chol_hat(arma::mat &, arma::mat &, int)",
+                "parent_name" : "",
+                "usr" : "c:@F@update_chol_hat#&$@N@arma@C@Mat>#d#S0_#I#"
+            },
+            {
+                "column" : 11,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 218,
+                "name" : "makeZ(List, arma::mat &)",
+                "parent_name" : "",
+                "usr" : "c:@F@makeZ#$@N@Rcpp@C@Vector>#VI19#@N@Rcpp@CT>1#T@PreserveStorage#&$@N@arma@C@Mat>#d#"
+            },
+            {
+                "column" : 15,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 244,
+                "name" : "dropVals(NumericVector, int)",
+                "parent_name" : "",
+                "usr" : "c:@F@dropVals#$@N@Rcpp@C@Vector>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#I#"
+            },
+            {
+                "column" : 6,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 253,
+                "name" : "copyMat(arma::mat, arma::mat)",
+                "parent_name" : "",
+                "usr" : "c:@F@copyMat#$@N@arma@C@Mat>#d#S0_#"
+            },
+            {
+                "column" : 11,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 265,
+                "name" : "reverse_vec(arma::vec &)",
+                "parent_name" : "",
+                "usr" : "c:@F@reverse_vec#&$@N@arma@C@Col>#d#"
+            },
+            {
+                "column" : 6,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 275,
+                "name" : "computeMLE_with_yr(NumericMatrix, NumericVector, List, List, NumericMatrix)",
+                "parent_name" : "",
+                "usr" : "c:@F@computeMLE_with_yr#$@N@Rcpp@C@Matrix>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#$@N@Rcpp@C@Vector>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#$@N@Rcpp@C@Vector>#VI19#@N@Rcpp@CT>1#T@PreserveStorage#S2_#S0_#"
+            },
+            {
+                "column" : 6,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 356,
+                "name" : "computeMLE(NumericMatrix, NumericVector, List, NumericMatrix)",
+                "parent_name" : "",
+                "usr" : "c:@F@computeMLE#$@N@Rcpp@C@Matrix>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#$@N@Rcpp@C@Vector>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#$@N@Rcpp@C@Vector>#VI19#@N@Rcpp@CT>1#T@PreserveStorage#S0_#"
+            },
+            {
+                "column" : 15,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 364,
+                "name" : "forwardSolve(NumericMatrix, NumericVector, int)",
+                "parent_name" : "",
+                "usr" : "c:@F@forwardSolve#$@N@Rcpp@C@Matrix>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#$@N@Rcpp@C@Vector>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#I#"
+            },
+            {
+                "column" : 8,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 391,
+                "name" : "dmvnorm_partOne(NumericMatrix, int)",
+                "parent_name" : "",
+                "usr" : "c:@F@dmvnorm_partOne#$@N@Rcpp@C@Matrix>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#I#"
+            },
+            {
+                "column" : 8,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 403,
+                "name" : "dmvnorm_partTwo(NumericVector, NumericVector, NumericMatrix, int)",
+                "parent_name" : "",
+                "usr" : "c:@F@dmvnorm_partTwo#$@N@Rcpp@C@Vector>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#S0_#$@N@Rcpp@C@Matrix>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#I#"
+            },
+            {
+                "column" : 15,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 423,
+                "name" : "dmvnorm_Omega(NumericMatrix, NumericVector, NumericMatrix, List)",
+                "parent_name" : "",
+                "usr" : "c:@F@dmvnorm_Omega#$@N@Rcpp@C@Matrix>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#$@N@Rcpp@C@Vector>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#S0_#$@N@Rcpp@C@Vector>#VI19#@N@Rcpp@CT>1#T@PreserveStorage#"
+            },
+            {
+                "column" : 8,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 449,
+                "name" : "dmvnorm_one(NumericVector, NumericVector, NumericMatrix, int)",
+                "parent_name" : "",
+                "usr" : "c:@F@dmvnorm_one#$@N@Rcpp@C@Vector>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#S0_#$@N@Rcpp@C@Matrix>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#I#"
+            },
+            {
+                "column" : 15,
+                "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+                "kind" : 6,
+                "line" : 472,
+                "name" : "dmvnorm_mono(NumericMatrix, NumericVector, NumericMatrix, IntegerVector)",
+                "parent_name" : "",
+                "usr" : "c:@F@dmvnorm_mono#$@N@Rcpp@C@Matrix>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#$@N@Rcpp@C@Vector>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#S0_#$@N@Rcpp@C@Vector>#VI13#@N@Rcpp@CT>1#T@PreserveStorage#"
+            }
+        ],
+        "file" : "/Users/cliffordanderson-bergman/Desktop/monoMissGMM/src/monoMissGMM.cpp",
+        "file_last_write" : 1537075000
+    }
+]
