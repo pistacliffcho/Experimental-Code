@@ -55,32 +55,48 @@ plot2d <- function(embedder,
 updateAndCheck <- function(nUpdates, 
                            alpha_start = 1.0, 
                            alpha_finish = 0.01, 
+                           attemps = 10, 
+                           increase = 1.1, 
+                           decrease = 3, 
                            embedder, updater = adam_update){
   start_llk = embedder$last_llk
-  start_coords = embedder$coords
-  start_etas = embedder$etas
+  last_llk = start_llk
+  last_coords = embedder$coords
+  last_etas = embedder$etas
+
+  fail_count = 0
   
-  updater(nUpdates, 
+  for(i in 1:attemps){
+  
+    updater(nUpdates, 
              alpha_start = alpha_start, 
              alpha_finish = alpha_finish, 
              embedder)
-  estEmbedLLK(nUpdates/10, embedder)
-  improve = FALSE
-  new_llk <- embedder$last_llk
-  if(!is.na(new_llk)){
-    if(start_llk < new_llk){ improve = TRUE}
+    estEmbedLLK(nUpdates/10, embedder)
+    improve = FALSE
+    new_llk <- embedder$last_llk
+    if(!is.na(new_llk)){
+      if(start_llk < new_llk){ improve = TRUE}
+    }
+    
+    if(!improve){
+        fail_count = fail_count + 1
+        embedder$coords <- last_coords
+        embedder$last_llk <- last_llk
+        embedder$etas <- last_etas
+        alpha_start = alpha_start / decrease
+        alpha_finish = alpha_finish / decrease
+    }
+    else{
+      last_llk = embedder$last_llk
+      alpha_start = alpha_start * increase
+      alpha_finish = alpha_finish * increase
+      last_coords = embedder$coords
+      last_etas = embedder$etas
+      
+    }
   }
-  else{
-    cat("LLK na! ")
-  }
-  if(!improve){
-      cat("Estimated Loglikelihood not improved. Reverting to previous estimates\n")
-      embedder$coords <- start_coords
-      embedder$last_llk <- start_llk
-      embedder$etas <- start_etas
-  }
-  else{
-   cat("Improvement in estimated average loglikelihood = ", new_llk - start_llk, '\n')
-  }
-  cat("Final estimated log-likelihood = ", embedder$last_llk, '\n')
+  cat("Estimated improvement in LLK =", last_llk - start_llk, 
+      "\nFinal estimated LLK =", last_llk,
+      "\nUpdate failures:", fail_count)
 }

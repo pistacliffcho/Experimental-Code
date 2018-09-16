@@ -26,19 +26,27 @@ makeSBM <- function(blocks = 5,
 }
 
 sbm_data <- makeSBM(pin = .5, pout = 0.05,
-                    n_perBlock = 20,
-                    blocks = 5)
+                    n_perBlock = 25,
+                    blocks = 10)
 n_nodes <- max(sbm_data$edgeList)
 embed <- makeEmbed(sbm_data$edgeList, 2)
 
-n_updates <- round(n_nodes * log(n_nodes)  * 50)
-updateAndCheck(n_updates, 1, .1, embed, sgd_update)
-updateAndCheck(n_updates, 0.1, .001, embed, sgd_update)
+n_updates <- round(n_nodes * log(n_nodes)  * 100)
+updateAndCheck(n_updates, 1, .1, 
+               embedder = embed, 
+               updater = adam_update, 
+               increase = 1, decrease = 1,
+               attemps = 1)
+updateAndCheck(n_updates, 0.01, .001, 
+               embedder = embed, 
+               updater = adam_update, 
+               increase = 1, decrease = 1,
+               attemps = 2)
 plot2d(embed, col = sbm_data$block_id)
 
 embed <- makeEmbed(sbm_data$edgeList, 2)
-updateAndCheck(n_updates, .1, .01, embed, adam_update)
-updateAndCheck(n_updates, 0.001, .0001, embed, adam_update)
+updateAndCheck(n_updates, .1, .01, embed, sgd_update)
+updateAndCheck(n_updates, 0.001, .0001, embed, sgd_update)
 plot2d(embed, col = sbm_data$block_id)
 
 
