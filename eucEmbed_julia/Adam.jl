@@ -1,22 +1,31 @@
+# Struct containing information for Adam optimization algorithm
 mutable struct AdamInfo
+    # Optimization parameters
+    # Note: alpha (learning rate) supplied at each iteration
     b1::Real
     b2::Real
     b1t::Real
     b2t::Real
     eps::Real
 
+    # Number of parameters
     k::Int
 
+    # Momentum and velocity vectors
     mt::Array{Real, 1}
     vt::Array{Real, 1}
+    # Proposed change in parameter values
     delta::Array{Real, 1}
 
+    # Constructor from only number of parameters,
+    # with default values supplied from paper
     AdamInfo(nPars::Int) = new(0.9, 0.999, 1.0, 1.0, 0.00001,
                                     nPars, zeros(nPars), zeros(nPars),
                                     zeros(nPars))
 
 end
 
+# Takes in a stochastic sample of gradient and updates proposal step
 updateDelta! = function(grad, alpha::Real, ai::AdamInfo)
     # Updating b1t and b2t due to new iteration
     ai.b1t *= ai.b1
@@ -35,6 +44,7 @@ updateDelta! = function(grad, alpha::Real, ai::AdamInfo)
     end
 end
 
+# Gets the current proposal step
 getDelta = function(ai::AdamInfo)
     return ai.delta
 end
