@@ -38,3 +38,17 @@ sum(mle_vec * ws)
 sum(up_vec * ws)
 sum(dn_vec * ws)
 mle$mu_hat
+
+
+
+library(gmmMonoMiss)
+
+data2 = dat[,nCol:1]
+split_info = gmmMonoMiss::makeDataList(data2, cum = F)
+n_missings = get_split_patterns(split_info$split_data)
+split_w = split(ws, split_info$missing_vec)
+mle2 = gmmMonoMiss::compute_mle(split_info$split_data, 
+                                split_w, n_missings)
+
+mu_org = mle2$mu[nCol:1]
+chol_org = mle2$chol[nCol:1, nCol:1]
