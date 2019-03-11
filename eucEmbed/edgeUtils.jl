@@ -44,10 +44,11 @@ function connectedNodeSample(n::Int,
 end
 
 # Randomly samples n nodes that are NOT connected to node
-function unconnectedNodeSample(n::Int, max_node::Int,
+function unconnectedNodeSample(n::Int, max_node::Int, 
                                connectedNodes::Array{Int, 1})::Array{Int, 1}
     nNodes = length( connectedNodes )
-    randFloats = rand(n) .* (max_node - nNodes) .+ 1
+    # Sample cannot be a connected node OR this_node
+    randFloats = rand(n) .* (max_node - nNodes - 1) .+ 1
     randInts = Int.(floor.(randFloats))
     for i in 1:n
         for j in 1:nNodes
