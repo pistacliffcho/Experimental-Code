@@ -1,5 +1,5 @@
 using DataFrames
-
+using StatsBase
 
 # For efficiency, want to have edge pairs sorted by first
 # node AND include copies of both directions, i.e.,
@@ -44,7 +44,7 @@ function connectedNodeSample(n::Int,
 end
 
 # Randomly samples n nodes that are NOT connected to node
-function unconnectedNodeSample(n::Int, max_node::Int, 
+function unconnectedNodeSample(n::Int, max_node::Int,
                                connectedNodes::Array{Int, 1})::Array{Int, 1}
     nNodes = length( connectedNodes )
     # Sample cannot be a connected node OR this_node
@@ -60,4 +60,43 @@ function unconnectedNodeSample(n::Int, max_node::Int,
     end
 
     return(randInts)
+end
+
+
+# Simulates an edge list according to a Stochastic Block Matrix
+# Randomly adds edge to any node that has none
+function simSBM(nBlocks::Int = 5, nPerBlock::Int = 20, pIn::Real = 0.25, pOut::Real = 0.05)
+    nvec1 = []
+    nvec2 = []
+
+    nTot = nBlocks * nPerBlock
+    for i in 2:nTot
+        for j in 1:(i-1)
+            if mod(i, nBlocks) == mod(j, nBlocks)
+                this_prob = pIn
+            else
+                this_prob = pOut
+            end
+            has_edge = rand(1)[1] < this_prob
+            if has_edge
+                push!(nvec1, i)
+                push!(nvec2, j)
+            end
+        end
+    end
+
+    all_used_nodes = vcat(nvec1, nvec2)
+    all_used_nodes = sort!(unique(all_used_nodes) )
+
+    nodes_without_edges = setdiff((1:nTot), all_used_nodes)
+    for this_node in nodes_without_edges
+        push!(nvec1, this_node)
+        if this_node > 1
+            push!(nvec2, this_node - 1)
+        else
+            push!(nvec2, this_node + 1)
+        end
+    end
+    ans = hcat( nvec1, nvec2 )
+    return(ans)
 end

@@ -1,4 +1,7 @@
-include("Embedder.jl")
+include("optimization.jl")
+
+using Plots
+gr()
 
 myAdam = AdamInfo(4)
 println(string("Adam.k = ", myAdam.k) )
@@ -39,3 +42,30 @@ for i in 1:100
     sgdEpoch!(embed)
 end
 println("Estimated LLK = ", estimateLLK(embed) )
+
+# Simulating stochastic block model with 5 groups of 100
+sim_data = simSBM(5, 100, pIn = .5, pOut = .05)
+euc_embed = makeRandEmbedder(sim_data, 2)
+
+println("Estimated LLK with power = 2 = ", estimateLLK(euc_embed) )
+for i in 1:100
+    sgdEpoch!(euc_embed, 0.001, 10)
+end
+println("Estimated LLK with power = 2 = ", estimateLLK(euc_embed) )
+euc_positions = getAllCoords(euc_embed)
+scatter(euc_positions[:,1], euc_positions[:,2], leg = false)
+
+
+noneuc_embed = makeRandEmbedder(sim_data, 2, 0.5)
+
+println("Estimated LLK with power = 0.5 = ", estimateLLK(noneuc_embed) )
+for i in 1:100
+    sgdEpoch!(noneuc_embed, 0.001, 10)
+end
+println("Estimated LLK with power = 0.5 = ", estimateLLK(noneuc_embed) )
+
+noneuc_positions = getAllCoords(noneuc_embed)
+
+
+# Correct embedding should be 5 equally sized groups
+scatter(noneuc_positions[:,1],noneuc_positions[:,2],  leg = false)
